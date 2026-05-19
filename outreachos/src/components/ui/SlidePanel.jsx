@@ -2,7 +2,14 @@ import { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { cn } from '../../lib/cn';
 
-export function SlidePanel({ open, onClose, title, children, width = 'w-[480px]' }) {
+export function SlidePanel({
+  open,
+  onClose,
+  title,
+  children,
+  width = 'w-[480px]',
+  zClass = 'z-50',
+}) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => {
@@ -15,7 +22,7 @@ export function SlidePanel({ open, onClose, title, children, width = 'w-[480px]'
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end">
+    <div className={cn('fixed inset-0 flex justify-end', zClass)}>
       <button
         type="button"
         aria-label="Close panel"

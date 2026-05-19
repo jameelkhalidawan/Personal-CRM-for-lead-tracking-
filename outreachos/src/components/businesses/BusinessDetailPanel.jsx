@@ -1,4 +1,8 @@
 import { Activity, Pencil, Trash2, UserPlus } from 'lucide-react';
+import { DecisionMakerPanel } from '../decisionMakers/DecisionMakerPanel';
+import { PreferredContactIcon } from '../decisionMakers/PreferredContactIcon';
+import { useDecisionMakerStore } from '../../stores/decisionMakerStore';
+import { Modal } from '../ui/Modal';
 import { formatCurrency, formatDateTime } from '../../lib/format';
 import { useBusinessStore } from '../../stores/businessStore';
 import { SlidePanel } from '../ui/SlidePanel';
@@ -41,8 +45,11 @@ export function BusinessDetailPanel({
     clearError,
     loadBusinessDetail,
   } = useBusinessStore();
+  const { remove: removeDecisionMaker } = useDecisionMakerStore();
   const [form, setForm] = useState(null);
   const [dirty, setDirty] = useState(false);
+  const [dmPanel, setDmPanel] = useState(null);
+  const [dmDelete, setDmDelete] = useState(null);
 
   useEffect(() => {
     if (open && businessId && (mode === 'view' || mode === 'edit')) {
@@ -135,7 +142,11 @@ export function BusinessDetailPanel({
               <Activity className="h-4 w-4" />
               Log activity
             </Button>
-            <Button variant="secondary" size="sm" disabled title="Phase 6">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setDmPanel({ mode: 'create' })}
+            >
               <UserPlus className="h-4 w-4" />
               Add decision maker
             </Button>
@@ -195,19 +206,30 @@ export function BusinessDetailPanel({
             {detail.decisionMakers?.length ? (
               <ul className="space-y-2">
                 {detail.decisionMakers.map((dm) => (
-                  <li
-                    key={dm.id}
-                    className="rounded-lg border border-border px-3 py-2 text-small"
-                  >
-                    <span className="text-text-primary font-medium">{dm.name}</span>
-                    {dm.role && (
-                      <span className="text-text-muted"> · {dm.role}</span>
-                    )}
+                  <li key={dm.id}>
+                    <button
+                      type="button"
+                      onClick={() => setDmPanel({ mode: 'view', dm })}
+                      className="w-full rounded-lg border border-border px-3 py-2 text-small text-left transition-colors hover:bg-background-elevated/50 flex items-center justify-between gap-2"
+                    >
+                      <span>
+                        <span className="text-text-primary font-medium">{dm.name}</span>
+                        {dm.role && (
+                          <span className="text-text-muted"> · {dm.role}</span>
+                        )}
+                        {dm.email && (
+                          <span className="block text-text-muted text-xs mt-0.5">
+                            {dm.email}
+                          </span>
+                        )}
+                      </span>
+                      <PreferredContactIcon method={dm.preferred_contact} />
+                    </button>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-small text-text-muted">None yet — Phase 6</p>
+              <p className="text-small text-text-muted">None yet</p>
             )}
           </div>
           <div>
@@ -242,6 +264,34 @@ export function BusinessDetailPanel({
       ) : (
         <p className="text-text-muted text-body">Business not found.</p>
       )}
+
+      <DecisionMakerPanel
+        open={!!dmPanel}
+        mode={dmPanel?.mode ?? 'view'}
+        businessId={business?.id}
+        businessName={business?.business_name}
+        decisionMaker={dmPanel?.dm}
+        onClose={() => setDmPanel(null)}
+        onEdit={() => setDmPanel((p) => (p ? { ...p, mode: 'edit' } : p))}
+        onDeleteRequest={(dm) => setDmDelete(dm)}
+      />
+
+      <Modal
+        open={!!dmDelete}
+        onClose={() => setDmDelete(null)}
+        title="Delete this contact?"
+        description="This will permanently remove the decision maker. This cannot be undone."
+        confirmLabel="Delete"
+        variant="danger"
+        onConfirm={async () => {
+          if (!dmDelete || !business) return;
+          const result = await removeDecisionMaker(dmDelete.id, business.id);
+          if (result.ok) {
+            setDmDelete(null);
+            setDmPanel(null);
+          }
+        }}
+      />
     </SlidePanel>
   );
 }

@@ -47,7 +47,7 @@ export async function fetchBusinessDetail(businessId) {
     supabase.from('businesses').select(BUSINESS_SELECT).eq('id', businessId).single(),
     supabase
       .from('decision_makers')
-      .select('id, name, role, email')
+      .select('*')
       .eq('business_id', businessId)
       .order('created_at', { ascending: true }),
     supabase

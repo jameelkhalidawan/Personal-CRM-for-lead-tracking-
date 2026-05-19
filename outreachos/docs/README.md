@@ -10,7 +10,7 @@ Step-by-step setup and **manual test checklists** for each phase.
 | [PHASE4_UI_SHELL.md](./PHASE4_UI_SHELL.md) | UI shell + components | ✅ |
 | [PHASE5_BUSINESSES.md](./PHASE5_BUSINESSES.md) | Businesses CRUD | ✅ |
 | [PHASE5_REALTIME.md](./PHASE5_REALTIME.md) | Realtime (optional) | ✅ |
-| [PHASE6_DECISION_MAKERS.md](./PHASE6_DECISION_MAKERS.md) | Decision makers | ⬜ Not started |
+| [PHASE6_DECISION_MAKERS.md](./PHASE6_DECISION_MAKERS.md) | Decision makers | ✅ Complete |
 | [PHASE7_ACTIVITIES.md](./PHASE7_ACTIVITIES.md) | Activities | ⬜ Not started |
 | [PHASE8_DASHBOARD.md](./PHASE8_DASHBOARD.md) | Dashboard Kanban | ⬜ Not started |
 | [PHASE9_REMINDERS.md](./PHASE9_REMINDERS.md) | Notifications | ⬜ Not started |

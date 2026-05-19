@@ -5,7 +5,7 @@
 > **Setup + test checklists per phase:** [docs/README.md](./docs/README.md)
 
 **Last updated:** 2026-05-19  
-**Current phase:** 5 complete → waiting for **GO** on Phase 6  
+**Current phase:** 6 complete → waiting for **GO** on Phase 7  
 **App version:** 0.1.0
 
 ---
@@ -19,7 +19,7 @@
 | 3 | Database schema | [PHASE3_DATABASE.md](./docs/PHASE3_DATABASE.md) | ✅ |
 | 4 | UI shell | [PHASE4_UI_SHELL.md](./docs/PHASE4_UI_SHELL.md) | ✅ |
 | 5 | Businesses | [PHASE5_BUSINESSES.md](./docs/PHASE5_BUSINESSES.md) | ✅ |
-| 6 | Decision makers | [PHASE6_DECISION_MAKERS.md](./docs/PHASE6_DECISION_MAKERS.md) | ⬜ |
+| 6 | Decision makers | [PHASE6_DECISION_MAKERS.md](./docs/PHASE6_DECISION_MAKERS.md) | ✅ |
 | 7 | Activities | [PHASE7_ACTIVITIES.md](./docs/PHASE7_ACTIVITIES.md) | ⬜ |
 | 8 | Dashboard Kanban | [PHASE8_DASHBOARD.md](./docs/PHASE8_DASHBOARD.md) | ⬜ |
 | 9 | Reminders | [PHASE9_REMINDERS.md](./docs/PHASE9_REMINDERS.md) | ⬜ |
@@ -28,43 +28,22 @@
 
 ---
 
-## What to test right now (Phases 1–5)
+## What to test right now (Phase 6)
 
-Use the **full checklists** in each doc above. Short version:
-
-### If you haven’t verified earlier phases
-
-1. **Phase 1** — `npm run dev`, Supabase green, `.env` gitignored  
-2. **Phase 2** — Register, auto-login, logout  
-3. **Phase 3** — `schema.sql` run; 7 tables; 4 services / 6 templates  
-
-### Phase 4 (UI shell)
-
-→ [docs/PHASE4_UI_SHELL.md](./docs/PHASE4_UI_SHELL.md) — sidebar, all routes, Settings panel/modal demos  
-
-### Phase 5 (Businesses) — **priority**
-
-→ [docs/PHASE5_BUSINESSES.md](./docs/PHASE5_BUSINESSES.md) — full A–H checklist  
+→ [docs/PHASE6_DECISION_MAKERS.md](./docs/PHASE6_DECISION_MAKERS.md) — full checklist
 
 Minimum smoke test:
 
-- [ ] Businesses page loads (not black)
-- [ ] Add one business → appears in table
-- [ ] Search + one filter work
-- [ ] Row click → detail panel
-- [ ] Edit and delete work
+- [ ] Business detail → **Add decision maker** → appears in list
+- [ ] Click contact → edit → save
+- [ ] **Decision Makers** nav page shows all contacts + search
+- [ ] **Open business** from global contact panel works
 
 ---
 
-## Recent fix (Phase 5)
+## Phase 7 — Next
 
-- **Black screen on `/businesses`:** fixed null `detail.business` when panel closed. Pull latest + refresh.
-
----
-
-## Phase 6 — Next
-
-Decision makers CRUD. Reply **GO** to start.
+Activities timeline + log from business detail. Reply **GO** to start.
 
 ---
 
@@ -73,7 +52,7 @@ Decision makers CRUD. Reply **GO** to start.
 ```
 === OUTREACHOS CONTEXT SNAPSHOT ===
 Read: outreachos/PHASES.md + outreachos/PROGRESS.md + docs/README.md
-Current phase completed: 5
-Next phase: 6 — Decision makers
+Current phase completed: 6
+Next phase: 7 — Activities
 ===================================
 ```

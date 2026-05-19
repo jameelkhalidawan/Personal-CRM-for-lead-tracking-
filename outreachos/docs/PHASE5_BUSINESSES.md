@@ -71,7 +71,7 @@ Full CRUD for businesses: list, search, filter, sort, detail panel, services lin
 
 ## Known limitations (later phases)
 
-- **Log activity** / **Add decision maker** buttons disabled until Phases 6–7
+- **Log activity** button disabled until Phase 7
 - Full dashboard Kanban is Phase 8
 
 ## Key files

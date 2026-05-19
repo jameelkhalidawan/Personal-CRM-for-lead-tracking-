@@ -184,6 +184,16 @@ export const useBusinessStore = create((set, get) => ({
           get().loadBusinesses();
         },
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'decision_makers' },
+        () => {
+          const detailId = get().detail?.business?.id;
+          if (detailId) {
+            get().loadBusinessDetail(detailId);
+          }
+        },
+      )
       .subscribe();
     } catch {
       // Realtime optional — app works without it

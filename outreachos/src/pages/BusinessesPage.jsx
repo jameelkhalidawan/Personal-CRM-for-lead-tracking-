@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Building2, Plus } from 'lucide-react';
 import { PageHeader } from '../components/layout/PageHeader';
 import { BusinessFilters } from '../components/businesses/BusinessFilters';
@@ -15,6 +16,7 @@ import { useDebounce } from '../hooks/useDebounce';
 import { useBusinessStore } from '../stores/businessStore';
 
 export function BusinessesPage() {
+  const location = useLocation();
   const {
     loading,
     error,
@@ -51,17 +53,26 @@ export function BusinessesPage() {
     return () => unsubscribeRealtime();
   }, [loadServices, loadBusinesses, subscribeRealtime, unsubscribeRealtime]);
 
+  const openView = (id) => {
+    loadBusinessDetail(id);
+    setPanel({ type: 'view', id });
+  };
+
+  useEffect(() => {
+    const id = location.state?.openBusinessId;
+    if (id) {
+      openView(id);
+      window.history.replaceState({}, document.title);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run when navigated with state
+  }, [location.state?.openBusinessId]);
+
   const businesses = getFilteredBusinesses();
   const hasFilters =
     localSearch.trim() ||
     filterStatus ||
     filterPriority ||
     filterServiceIds.length > 0;
-
-  const openView = (id) => {
-    loadBusinessDetail(id);
-    setPanel({ type: 'view', id });
-  };
 
   const closePanel = () => setPanel(null);
 
