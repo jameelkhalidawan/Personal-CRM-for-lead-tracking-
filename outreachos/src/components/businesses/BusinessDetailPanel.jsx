@@ -1,7 +1,12 @@
 import { Activity, Pencil, Trash2, UserPlus } from 'lucide-react';
+import { ActivityPanel } from '../activities/ActivityPanel';
+import { ActivityTimeline } from '../activities/ActivityTimeline';
+import { OutreachPlaybook } from '../activities/OutreachPlaybook';
+import { getSuggestedPreset, presetFromOutcome } from '../../lib/outreachSequence';
 import { DecisionMakerPanel } from '../decisionMakers/DecisionMakerPanel';
 import { PreferredContactIcon } from '../decisionMakers/PreferredContactIcon';
 import { useDecisionMakerStore } from '../../stores/decisionMakerStore';
+import { useActivityStore } from '../../stores/activityStore';
 import { Modal } from '../ui/Modal';
 import { formatCurrency, formatDateTime } from '../../lib/format';
 import { useBusinessStore } from '../../stores/businessStore';
@@ -46,10 +51,13 @@ export function BusinessDetailPanel({
     loadBusinessDetail,
   } = useBusinessStore();
   const { remove: removeDecisionMaker } = useDecisionMakerStore();
+  const { remove: removeActivity, saving: activitySaving } = useActivityStore();
   const [form, setForm] = useState(null);
   const [dirty, setDirty] = useState(false);
   const [dmPanel, setDmPanel] = useState(null);
   const [dmDelete, setDmDelete] = useState(null);
+  const [activityPanel, setActivityPanel] = useState(null);
+  const [activityDelete, setActivityDelete] = useState(null);
 
   useEffect(() => {
     if (open && businessId && (mode === 'view' || mode === 'edit')) {
@@ -138,9 +146,25 @@ export function BusinessDetailPanel({
               <Pencil className="h-4 w-4" />
               Edit
             </Button>
-            <Button variant="secondary" size="sm" disabled title="Phase 7">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                const suggested = getSuggestedPreset(
+                  business,
+                  detail?.decisionMakers,
+                  detail?.activities,
+                );
+                setActivityPanel({
+                  mode: 'create',
+                  preset: suggested
+                    ? { ...suggested, step: suggested.step }
+                    : undefined,
+                });
+              }}
+            >
               <Activity className="h-4 w-4" />
-              Log activity
+              Log suggested
             </Button>
             <Button
               variant="secondary"
@@ -232,33 +256,30 @@ export function BusinessDetailPanel({
               <p className="text-small text-text-muted">None yet</p>
             )}
           </div>
+          <OutreachPlaybook
+            business={business}
+            decisionMakers={detail.decisionMakers}
+            activities={detail.activities}
+            saving={activitySaving}
+            onLogStep={(preset, step) =>
+              setActivityPanel({ mode: 'create', preset: { ...preset, step } })
+            }
+            onLogOutcome={(action) =>
+              setActivityPanel({
+                mode: 'create',
+                preset: presetFromOutcome(action),
+              })
+            }
+            onCustomLog={() => setActivityPanel({ mode: 'create' })}
+          />
           <div>
             <p className="text-label uppercase text-text-muted mb-2">
-              Recent activities
+              Activity timeline
             </p>
-            {detail.activities?.length ? (
-              <ul className="space-y-2">
-                {detail.activities.map((a) => (
-                  <li
-                    key={a.id}
-                    className="rounded-lg border border-border px-3 py-2 text-small"
-                  >
-                    <span className="text-text-primary capitalize">
-                      {a.type?.replace(/_/g, ' ')}
-                    </span>
-                    <span className="text-text-muted">
-                      {' '}
-                      · {formatDateTime(a.created_at)}
-                    </span>
-                    {a.notes && (
-                      <p className="text-text-secondary mt-1 line-clamp-2">{a.notes}</p>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-small text-text-muted">None yet</p>
-            )}
+            <ActivityTimeline
+              activities={detail.activities}
+              onSelect={(a) => setActivityPanel({ mode: 'view', activity: a })}
+            />
           </div>
         </div>
       ) : (
@@ -274,6 +295,36 @@ export function BusinessDetailPanel({
         onClose={() => setDmPanel(null)}
         onEdit={() => setDmPanel((p) => (p ? { ...p, mode: 'edit' } : p))}
         onDeleteRequest={(dm) => setDmDelete(dm)}
+      />
+
+      <ActivityPanel
+        open={!!activityPanel}
+        mode={activityPanel?.mode ?? 'view'}
+        businessId={business?.id}
+        businessName={business?.business_name}
+        activity={activityPanel?.activity}
+        preset={activityPanel?.preset}
+        decisionMakers={detail?.decisionMakers ?? []}
+        onClose={() => setActivityPanel(null)}
+        onEdit={() => setActivityPanel((p) => (p ? { ...p, mode: 'edit' } : p))}
+        onDeleteRequest={(a) => setActivityDelete(a)}
+      />
+
+      <Modal
+        open={!!activityDelete}
+        onClose={() => setActivityDelete(null)}
+        title="Delete this activity?"
+        description="This removes the log entry only. It does not undo last-contacted dates already saved."
+        confirmLabel="Delete"
+        variant="danger"
+        onConfirm={async () => {
+          if (!activityDelete || !business) return;
+          const result = await removeActivity(activityDelete.id, business.id);
+          if (result.ok) {
+            setActivityDelete(null);
+            setActivityPanel(null);
+          }
+        }}
       />
 
       <Modal

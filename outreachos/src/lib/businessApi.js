@@ -52,18 +52,26 @@ export async function fetchBusinessDetail(businessId) {
       .order('created_at', { ascending: true }),
     supabase
       .from('activities')
-      .select('id, type, notes, created_at, followup_at')
+      .select('*, decision_makers ( id, name )')
       .eq('business_id', businessId)
-      .order('created_at', { ascending: false })
-      .limit(3),
+      .order('created_at', { ascending: false }),
   ]);
 
   if (businessRes.error) throw businessRes.error;
 
+  const activities = (actRes.data ?? []).map((row) => {
+    const dm = row.decision_makers;
+    const { decision_makers, ...rest } = row;
+    return {
+      ...rest,
+      decision_maker_name: dm?.name ?? null,
+    };
+  });
+
   return {
     business: mapBusinessRow(businessRes.data),
     decisionMakers: dmRes.data ?? [],
-    activities: actRes.data ?? [],
+    activities,
   };
 }
 

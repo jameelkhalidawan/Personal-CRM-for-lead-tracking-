@@ -5,7 +5,7 @@
 > **Setup + test checklists per phase:** [docs/README.md](./docs/README.md)
 
 **Last updated:** 2026-05-19  
-**Current phase:** 6 complete → waiting for **GO** on Phase 7  
+**Current phase:** 7 complete → waiting for **GO** on Phase 8  
 **App version:** 0.1.0
 
 ---
@@ -20,7 +20,7 @@
 | 4 | UI shell | [PHASE4_UI_SHELL.md](./docs/PHASE4_UI_SHELL.md) | ✅ |
 | 5 | Businesses | [PHASE5_BUSINESSES.md](./docs/PHASE5_BUSINESSES.md) | ✅ |
 | 6 | Decision makers | [PHASE6_DECISION_MAKERS.md](./docs/PHASE6_DECISION_MAKERS.md) | ✅ |
-| 7 | Activities | [PHASE7_ACTIVITIES.md](./docs/PHASE7_ACTIVITIES.md) | ⬜ |
+| 7 | Activities | [PHASE7_ACTIVITIES.md](./docs/PHASE7_ACTIVITIES.md) | ✅ |
 | 8 | Dashboard Kanban | [PHASE8_DASHBOARD.md](./docs/PHASE8_DASHBOARD.md) | ⬜ |
 | 9 | Reminders | [PHASE9_REMINDERS.md](./docs/PHASE9_REMINDERS.md) | ⬜ |
 | 10 | Templates + settings | [PHASE10_SETTINGS.md](./docs/PHASE10_SETTINGS.md) | ⬜ |
@@ -28,22 +28,22 @@
 
 ---
 
-## What to test right now (Phase 6)
+## What to test right now (Phase 7)
 
-→ [docs/PHASE6_DECISION_MAKERS.md](./docs/PHASE6_DECISION_MAKERS.md) — full checklist
+→ [docs/PHASE7_ACTIVITIES.md](./docs/PHASE7_ACTIVITIES.md) — full checklist
 
 Minimum smoke test:
 
-- [ ] Business detail → **Add decision maker** → appears in list
-- [ ] Click contact → edit → save
-- [ ] **Decision Makers** nav page shows all contacts + search
-- [ ] **Open business** from global contact panel works
+- [ ] Business detail → **Log activity** → appears in timeline
+- [ ] **Last contacted** updates on the business
+- [ ] **Activities** page lists all logs + search/filter
+- [ ] Edit and delete an activity
 
 ---
 
-## Phase 7 — Next
+## Phase 8 — Next
 
-Activities timeline + log from business detail. Reply **GO** to start.
+Dashboard + Kanban pipeline. Reply **GO** to start.
 
 ---
 
@@ -52,7 +52,7 @@ Activities timeline + log from business detail. Reply **GO** to start.
 ```
 === OUTREACHOS CONTEXT SNAPSHOT ===
 Read: outreachos/PHASES.md + outreachos/PROGRESS.md + docs/README.md
-Current phase completed: 6
-Next phase: 7 — Activities
+Current phase completed: 7
+Next phase: 8 — Dashboard Kanban
 ===================================
 ```

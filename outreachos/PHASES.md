@@ -36,7 +36,7 @@
 | 4 | UI design system + layout shell | [docs/PHASE4_UI_SHELL.md](./docs/PHASE4_UI_SHELL.md) | ✅ |
 | 5 | Business management | [docs/PHASE5_BUSINESSES.md](./docs/PHASE5_BUSINESSES.md) | ✅ |
 | 6 | Decision makers | [docs/PHASE6_DECISION_MAKERS.md](./docs/PHASE6_DECISION_MAKERS.md) | ⬜ |
-| 7 | Activities timeline | [docs/PHASE7_ACTIVITIES.md](./docs/PHASE7_ACTIVITIES.md) | ⬜ |
+| 7 | Activities timeline | [docs/PHASE7_ACTIVITIES.md](./docs/PHASE7_ACTIVITIES.md) | ✅ |
 | 8 | Dashboard + pipeline Kanban | [docs/PHASE8_DASHBOARD.md](./docs/PHASE8_DASHBOARD.md) | ⬜ |
 | 9 | Reminders + notifications | [docs/PHASE9_REMINDERS.md](./docs/PHASE9_REMINDERS.md) | ⬜ |
 | 10 | Email templates + settings + auto-start | [docs/PHASE10_SETTINGS.md](./docs/PHASE10_SETTINGS.md) | ⬜ |
