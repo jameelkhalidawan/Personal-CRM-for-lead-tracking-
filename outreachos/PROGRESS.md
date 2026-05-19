@@ -1,10 +1,9 @@
 # OutreachOS — Build Progress
 
-> **Purpose:** Single source of truth for what is done, in progress, and remaining.  
-> **For agents:** Read this file at the start of every session before writing code. Update it at the end of every phase.
+> **For agents:** Read this file first every session. Update at end of each phase.
 
 **Last updated:** 2026-05-19  
-**Current phase:** 3 — SQL ready; **you must run `schema.sql` in Supabase** → then verify  
+**Current phase:** 4 complete → waiting for **GO** on Phase 5  
 **App version:** 0.1.0
 
 ---
@@ -13,10 +12,10 @@
 
 | Phase | Name | Status |
 |-------|------|--------|
-| 1 | Project scaffold + Supabase setup | ✅ **Complete** |
-| 2 | Auth + session persistence | ✅ **Complete** (user verified login) |
-| 3 | Database schema (SQL + RLS + seeds) | 🟡 **SQL delivered** — run in Supabase dashboard |
-| 4 | UI design system + layout shell | ⬜ Not started |
+| 1 | Project scaffold + Supabase setup | ✅ Complete |
+| 2 | Auth + session persistence | ✅ Complete |
+| 3 | Database schema (SQL + RLS + seeds) | ✅ Complete (SQL in repo; user runs in Supabase) |
+| 4 | UI design system + layout shell | ✅ Complete |
 | 5 | Business management | ⬜ Not started |
 | 6 | Decision makers | ⬜ Not started |
 | 7 | Activities timeline | ⬜ Not started |
@@ -25,86 +24,79 @@
 | 10 | Email templates + settings + auto-start | ⬜ Not started |
 | 11 | Build, package, distribution | ⬜ Not started |
 
-**In progress:** Phase 3 — waiting for you to run `supabase/schema.sql` and confirm Dashboard shows green database check.
-
 ---
 
-## Project config
+## Phase 4 — Complete ✅
 
-| Item | Value |
-|------|--------|
-| **Workspace** | `d:\Conscious Automation\CRM\outreachos` |
-| **Supabase project** | `kkjbkbwongnwgtkviepa.supabase.co` |
-| **Dev command** | `npm run dev` |
+### Delivered
 
----
+- [x] `AppLayout` — fixed 240px sidebar + scrollable main (`src/layouts/AppLayout.jsx`)
+- [x] `Sidebar` — logo, 6 nav items, user avatar/initials at bottom
+- [x] `react-router-dom` (`HashRouter` for Electron)
+- [x] Placeholder pages: Dashboard, Businesses, Decision Makers, Activities, Email Templates, Settings
+- [x] UI components in `src/components/ui/`:
+  - Button (primary, secondary, ghost, danger)
+  - Input, Textarea, Select
+  - Badge (StatusBadge, PriorityBadge)
+  - Card, CardHeader, CardBody
+  - SlidePanel (right drawer + backdrop)
+  - Modal (confirm dialog + backdrop)
+  - EmptyState, LoadingSpinner, SearchInput
+- [x] Settings page — component preview + logout + panel/modal demos
+- [x] Active nav styling via `NavLink`
+- [x] Animations: `animate-slide-in`, `animate-fade-in` in `index.css`
 
-## Phase 3 — Database schema 🟡
+### Phase 4 key files
 
-### Delivered (in repo)
+```
+src/layouts/AppLayout.jsx
+src/components/layout/Sidebar.jsx
+src/components/layout/PageHeader.jsx
+src/components/ui/*.jsx
+src/routes/AppRouter.jsx
+src/pages/DashboardPage.jsx
+src/pages/BusinessesPage.jsx
+src/pages/DecisionMakersPage.jsx
+src/pages/ActivitiesPage.jsx
+src/pages/EmailTemplatesPage.jsx
+src/pages/SettingsPage.jsx
+src/config/navigation.js
+```
 
-- [x] Full SQL: `supabase/schema.sql` (7 tables, FKs, CHECKs, indexes, RLS, seeds)
-- [x] Setup guide: `docs/PHASE3_DATABASE.md`
-- [x] RLS notes: `supabase/verify-rls.md`
-- [x] App-side verify: `src/lib/dbCheck.js` + Dashboard “Database (Phase 3)” panel
-
-### Tables
-
-| Table | Purpose |
-|-------|---------|
-| `businesses` | Leads / companies |
-| `decision_makers` | Contacts per business |
-| `services` | Offerings (4 seeded) |
-| `business_services` | Business ↔ service junction |
-| `activities` | Timeline / follow-ups |
-| `email_templates` | Shared templates (6 seeded) |
-| `reminder_settings` | Per-user notification prefs |
-
-### Your action required
-
-1. Supabase Dashboard → **SQL Editor**
-2. Paste & run entire `supabase/schema.sql`
-3. `npm run dev` → Dashboard should show **services: 4 rows**, **email_templates: 6 rows**
-
-### Phase 3 manual tests
+### Phase 4 manual tests
 
 | Test | Status |
 |------|--------|
-| All 7 tables in Table Editor | ⬜ User |
-| `services` has 4 rows | ⬜ User |
-| `email_templates` has 6 rows | ⬜ User |
-| Insert test business in Table Editor | ⬜ User |
-| Insert decision_maker → delete business → DM cascades | ⬜ User |
-| Dashboard green “Database schema verified” | ⬜ User |
-| Unauthenticated API insert blocked (RLS) | ⬜ Optional until Phase 5 |
+| Sidebar visible on all authenticated screens | ⬜ User |
+| All 6 nav items switch pages | ⬜ User |
+| Active nav item highlighted | ⬜ User |
+| Settings: all button variants visible | ⬜ User |
+| Settings: open/close SlidePanel | ⬜ User |
+| Settings: open/close Modal with backdrop | ⬜ User |
+| Resize window 1024px / 1440px — layout intact | ⬜ User |
+| No console errors | ⬜ User |
 
 ---
 
-## Phase 1–2 — Complete ✅
+## Phase 3 — Complete ✅
 
-See git history / earlier sections. Auth + Electron scaffold working.
-
----
-
-## Phases 4–11 — Not started ⬜
-
-| Phase | Goal |
-|-------|------|
-| 4 | Sidebar, routes, shared UI components |
-| 5 | Businesses CRUD + realtime |
-| 6 | Decision makers |
-| 7 | Activities timeline |
-| 8 | Real dashboard + Kanban |
-| 9 | Desktop notifications |
-| 10 | Templates + settings + auto-start |
-| 11 | Installer + README |
+- SQL: `supabase/schema.sql`
+- Docs: `docs/PHASE3_DATABASE.md`
+- Dashboard DB check: `src/lib/dbCheck.js`
 
 ---
 
-## Known issues / TODOs
+## Phase 2 — Complete ✅
 
-- [ ] Run `supabase/schema.sql` in Supabase (required to complete Phase 3)
-- [ ] Mark Phase 2 tests complete in checklist if not already
+Auth, safeStorage, Login/Register — user verified login.
+
+---
+
+## Phase 5 — Next ⬜
+
+Businesses CRUD, search, filter, SlidePanel detail, realtime.
+
+**Blocked by:** User reply **GO**
 
 ---
 
@@ -113,9 +105,8 @@ See git history / earlier sections. Auth + Electron scaffold working.
 ```
 === OUTREACHOS CONTEXT SNAPSHOT ===
 Read first: outreachos/PROGRESS.md
-Current phase: 3 (SQL in repo — user runs schema.sql in Supabase)
-Next after Phase 3 verified: Phase 4 — UI shell + sidebar
-Files added: supabase/schema.sql, docs/PHASE3_DATABASE.md, src/lib/dbCheck.js
-Last thing done: Full DB schema + seeds + Dashboard table verification UI
+Current phase completed: 4
+Next phase: 5 — Business management (CRUD, search, filter, realtime)
+Last thing done: App shell, sidebar, UI kit, HashRouter, placeholder pages
 ===================================
 ```

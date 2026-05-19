@@ -3,7 +3,7 @@ import { Loader2 } from 'lucide-react';
 import { useAuthStore } from './stores/authStore';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
-import { Dashboard } from './pages/Dashboard';
+import { AppRouter } from './routes/AppRouter';
 
 function App() {
   const { initialize, initialized, loading, session, authView, error } =
@@ -23,7 +23,7 @@ function App() {
   }
 
   if (session?.user) {
-    return <Dashboard />;
+    return <AppRouter />;
   }
 
   if (error && !session) {
