@@ -2,7 +2,11 @@
 
 AI Sales CRM desktop app (Electron + React + Supabase).
 
-**Build progress:** see [PROGRESS.md](./PROGRESS.md) for what is done, in progress, and remaining across all 11 phases.
+**Documentation:**
+
+- [PHASES.md](./PHASES.md) — master plan (all 11 phases, like the original prompt)
+- [PROGRESS.md](./PROGRESS.md) — live status (done / next)
+- [docs/README.md](./docs/README.md) — per-phase setup steps + test checklists
 
 ---
 

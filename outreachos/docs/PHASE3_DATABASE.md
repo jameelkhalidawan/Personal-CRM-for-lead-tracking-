@@ -1,4 +1,10 @@
-# Phase 3 — Database setup
+# Phase 3 — Database schema
+
+**Status:** ✅ Complete (SQL in repo — you run once in Supabase)
+
+## Goal
+
+All 7 tables, RLS policies, indexes, seed data (4 services, 6 email templates).
 
 All CRM tables live in Supabase PostgreSQL. The app does not create them automatically — you run the SQL once in the dashboard.
 
@@ -68,6 +74,18 @@ In Table Editor:
 2. Insert a `decision_makers` row linked to that `business_id`
 3. Delete the **business** row
 4. Confirm the **decision_maker** row is gone (CASCADE)
+
+## Test checklist (summary)
+
+- [ ] All **7 tables** in Table Editor
+- [ ] **services** = 4 rows, **email_templates** = 6 rows
+- [ ] Insert test **business** in Table Editor succeeds
+- [ ] Delete business **cascades** to `decision_makers`
+- [ ] Dashboard (app) **Database** card shows green verification when logged in
+
+## Key file
+
+- `supabase/schema.sql`
 
 ## Troubleshooting
 

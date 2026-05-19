@@ -1,4 +1,5 @@
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import { AppLayout } from '../layouts/AppLayout';
 import { DashboardPage } from '../pages/DashboardPage';
 import { BusinessesPage } from '../pages/BusinessesPage';
@@ -10,8 +11,9 @@ import { SettingsPage } from '../pages/SettingsPage';
 export function AppRouter() {
   return (
     <HashRouter>
-      <Routes>
-        <Route element={<AppLayout />}>
+      <ErrorBoundary>
+        <Routes>
+          <Route element={<AppLayout />}>
           <Route index element={<DashboardPage />} />
           <Route path="businesses" element={<BusinessesPage />} />
           <Route path="decision-makers" element={<DecisionMakersPage />} />
@@ -19,8 +21,9 @@ export function AppRouter() {
           <Route path="email-templates" element={<EmailTemplatesPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
-        </Route>
-      </Routes>
+          </Route>
+        </Routes>
+      </ErrorBoundary>
     </HashRouter>
   );
 }

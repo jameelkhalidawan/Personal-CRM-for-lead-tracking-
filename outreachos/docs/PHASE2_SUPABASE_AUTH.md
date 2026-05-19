@@ -1,4 +1,12 @@
-# Phase 2 — Supabase Auth setup
+# Phase 2 — Auth + session persistence
+
+**Status:** ✅ Complete
+
+## Goal
+
+Register once, auto-login on restart, logout clears session (Electron `safeStorage`).
+
+## Supabase setup (one-time)
 
 Enable email/password auth before registering in the app.
 
@@ -22,3 +30,19 @@ Sessions are stored encrypted via Electron `safeStorage` in:
 `%APPDATA%\outreachos\` (Windows) — files `secure-auth-storage.json` and `auth-flags.json`.
 
 Logout clears the encrypted session; next launch shows the Login screen.
+
+## Test checklist
+
+- [ ] **Register** new email → lands on **Dashboard**
+- [ ] **Close app completely** → reopen → **Dashboard** (no login)
+- [ ] **Log out** (Settings) → reopen → **Login** screen
+- [ ] **Wrong password** → red inline error (no popup alert)
+- [ ] **Duplicate email** on register → inline error
+- [ ] Session survives **PC restart** (while still logged in)
+
+## Key files
+
+- `src/stores/authStore.js`
+- `src/pages/Login.jsx`, `src/pages/Register.jsx`
+- `electron/authStorage.cjs`
+- `src/lib/authStorage.js`
