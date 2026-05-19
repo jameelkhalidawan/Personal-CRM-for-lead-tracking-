@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { electronAuthStorage } from './authStorage';
 
 const STAGE_LABELS = {
   config: 'Checking .env configuration…',
@@ -38,7 +39,14 @@ export function getSupabase() {
   }
 
   if (!supabaseClient) {
-    supabaseClient = createClient(supabaseUrl.trim(), supabaseAnonKey.trim());
+    supabaseClient = createClient(supabaseUrl.trim(), supabaseAnonKey.trim(), {
+      auth: {
+        storage: electronAuthStorage,
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: false,
+      },
+    });
   }
 
   return supabaseClient;

@@ -1,8 +1,39 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+const authStorage = require('./authStorage.cjs');
 
 const isDev = !app.isPackaged;
 const VITE_DEV_SERVER_URL = 'http://localhost:5173';
+
+function registerAuthIpc() {
+  ipcMain.handle('auth-storage:get', (_event, key) => {
+    return authStorage.getItem(key);
+  });
+
+  ipcMain.handle('auth-storage:set', (_event, key, value) => {
+    authStorage.setItem(key, value);
+    return true;
+  });
+
+  ipcMain.handle('auth-storage:remove', (_event, key) => {
+    authStorage.removeItem(key);
+    return true;
+  });
+
+  ipcMain.handle('auth-storage:clear', () => {
+    authStorage.clearAll();
+    return true;
+  });
+
+  ipcMain.handle('auth-flags:get', () => {
+    return authStorage.getFlags();
+  });
+
+  ipcMain.handle('auth-flags:set', (_event, flags) => {
+    authStorage.setFlags(flags);
+    return true;
+  });
+}
 
 function createWindow() {
   const mainWindow = new BrowserWindow({
@@ -32,6 +63,7 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  registerAuthIpc();
   createWindow();
 
   app.on('activate', () => {
