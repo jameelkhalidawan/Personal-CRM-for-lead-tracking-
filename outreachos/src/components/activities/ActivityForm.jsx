@@ -1,12 +1,15 @@
 import {
   EMAIL_ACTIVITY_TYPES,
   OTHER_ACTIVITY_TYPES,
+  OUTCOME_ACTIVITY_TYPES,
   OUTCOME_ACTIVITY_TYPES_LIST,
   PLAYBOOK_ACTIVITY_TYPES,
 } from '../../constants/activity';
-import { isEmailActivityType } from '../../lib/templateRender';
+import { getChannelForActivityType, OUTREACH_CHANNELS } from '../../lib/outreachChannel';
+import { isCallActivityType, isEmailActivityType } from '../../lib/templateRender';
 import { Input, Select, Textarea } from '../ui/Input';
 import { Button } from '../ui/Button';
+import { CallOutreachSection } from './CallOutreachSection';
 import { EmailOutreachSection } from './EmailOutreachSection';
 import { FollowUpPresets } from './FollowUpPresets';
 
@@ -29,6 +32,12 @@ export function ActivityForm({
 }) {
   const set = (field, value) => onChange({ ...form, [field]: value });
   const showEmailTemplates = !isOutcome && isEmailActivityType(form.type);
+  const showCallScripts = !isOutcome && isCallActivityType(form.type);
+  const showChannel =
+    isOutcome ||
+    OUTCOME_ACTIVITY_TYPES.includes(form.type) ||
+    PLAYBOOK_ACTIVITY_TYPES.some((t) => t.value === form.type);
+  const channelRequired = form.type === 'closed';
 
   return (
     <form
@@ -59,10 +68,16 @@ export function ActivityForm({
         onChange={(e) => {
           const type = e.target.value;
           const next = { ...form, type };
+          const inferred = getChannelForActivityType(type);
+          if (inferred) next.outreach_channel = inferred;
           if (!EMAIL_ACTIVITY_TYPES.includes(type)) {
             next.email_subject = '';
             next.email_body = '';
             next.template_id = '';
+          }
+          if (!isCallActivityType(type)) {
+            next.call_template_id = '';
+            next.call_script_id = '';
           }
           onChange(next);
         }}
@@ -91,6 +106,22 @@ export function ActivityForm({
       </Select>
       )}
 
+      {showChannel && (
+        <Select
+          label={channelRequired ? 'Winning channel' : 'Outreach channel'}
+          required={channelRequired}
+          value={form.outreach_channel ?? ''}
+          onChange={(e) => set('outreach_channel', e.target.value)}
+        >
+          <option value="">Not set</option>
+          {OUTREACH_CHANNELS.map((c) => (
+            <option key={c.value} value={c.value}>
+              {c.label}
+            </option>
+          ))}
+        </Select>
+      )}
+
       {decisionMakers.length > 0 && (
         <Select
           label={showEmailTemplates ? 'Contact' : 'Contact (optional)'}
@@ -105,6 +136,16 @@ export function ActivityForm({
             </option>
           ))}
         </Select>
+      )}
+
+      {showCallScripts && (
+        <CallOutreachSection
+          form={form}
+          onPatch={onPatch}
+          business={business}
+          decisionMakers={decisionMakers}
+          user={user}
+        />
       )}
 
       {showEmailTemplates && (
@@ -128,13 +169,15 @@ export function ActivityForm({
         label={isOutcome ? 'Notes (what happened?)' : 'Notes'}
         value={form.notes}
         onChange={(e) => set('notes', e.target.value)}
-        rows={isOutcome ? 5 : 4}
+        rows={isOutcome ? 5 : showCallScripts ? 6 : 4}
         placeholder={
           isOutcome
             ? 'e.g. They replied on LinkedIn, meeting Tuesday 2pm, sent $5k proposal…'
-            : showEmailTemplates
-              ? 'Filled automatically when you pick a template — edit if needed'
-              : 'What happened? Outcomes, objections, next steps…'
+            : showCallScripts
+              ? 'Script and call result fill in here — edit if needed'
+              : showEmailTemplates
+                ? 'Filled automatically when you pick a template — edit if needed'
+                : 'What happened? Outcomes, objections, next steps…'
         }
       />
 

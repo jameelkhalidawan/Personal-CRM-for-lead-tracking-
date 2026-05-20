@@ -1,6 +1,12 @@
 import { ACTIVITY_TYPE_LABELS, OUTCOME_ACTIVITY_TYPES } from '../constants/activity';
 import { pickPrimaryContact } from './contactPick';
-import { getLeadTitle, getLeadContext, getOutreachContactsForBusiness } from './leadModel';
+import {
+  filterActivitiesForContact,
+  getLeadTitle,
+  getLeadContext,
+  getOutreachContactsForBusiness,
+} from './leadModel';
+import { readOutreachTimingFromStorage } from './outreachTiming';
 import { getPlaybookState } from './outreachSequence';
 
 function sortActivitiesNewest(activities) {
@@ -10,9 +16,24 @@ function sortActivitiesNewest(activities) {
 }
 
 /** What to do next, where the lead is in the process, and any note to show on dashboard cards */
-export function getFollowUpInsight(business, activities = [], decisionMakers = []) {
-  const sorted = sortActivitiesNewest(activities);
-  const state = getPlaybookState(business, decisionMakers, sorted);
+export function getFollowUpInsight(
+  business,
+  activities = [],
+  decisionMakers = [],
+  timing = readOutreachTimingFromStorage(),
+  decisionMaker = null,
+) {
+  const scopedActivities = decisionMaker
+    ? filterActivitiesForContact(activities, decisionMaker.id)
+    : activities;
+  const sorted = sortActivitiesNewest(scopedActivities);
+  const state = getPlaybookState(
+    business,
+    decisionMakers,
+    scopedActivities,
+    timing,
+    decisionMaker,
+  );
 
   let nextAction;
   let processLabel;
@@ -29,11 +50,23 @@ export function getFollowUpInsight(business, activities = [], decisionMakers = [
       state.totalSteps > 0
         ? `Engaged · ${state.completedCount}/${state.totalSteps} outreach steps done`
         : 'Engaged — continue conversation';
+  } else if (state.currentSteps?.length > 1) {
+    nextAction = state.currentSteps.map((s) => s.label).join(' + ');
+    processLabel =
+      state.totalSteps > 0
+        ? `Call & email in parallel · ${state.completedCount}/${state.totalSteps} done`
+        : 'Call & email tracks due';
   } else if (state.current) {
+    const trackLabel =
+      state.current.track === 'phone'
+        ? 'Call track'
+        : state.current.track === 'email'
+          ? 'Email track'
+          : 'Outreach';
     nextAction = state.current.label;
     processLabel =
       state.totalSteps > 0
-        ? `Outreach step ${state.completedCount + 1} of ${state.totalSteps}`
+        ? `${trackLabel} · ${state.completedCount + 1} of ${state.totalSteps}`
         : 'Outreach in progress';
   } else if (state.allDone && state.totalSteps > 0) {
     nextAction = 'Log outcome or schedule next touch';
@@ -85,6 +118,8 @@ export function enrichFollowUpList(businesses, activitiesByBusiness, dmsByBusine
         business,
         activitiesByBusiness[business.id] ?? [],
         dms,
+        undefined,
+        decisionMaker,
       ),
       leadTitle: getLeadTitle(decisionMaker, business),
       leadContext: getLeadContext(decisionMaker, business),
@@ -99,13 +134,14 @@ export function expandFollowUpListByContact(businesses, activitiesByBusiness, dm
   for (const business of businesses ?? []) {
     const dms = dmsByBusiness[business.id] ?? [];
     const contacts = getOutreachContactsForBusiness(business, dms);
-    const insight = getFollowUpInsight(
-      business,
-      activitiesByBusiness[business.id] ?? [],
-      dms,
-    );
-
     if (!contacts.length) {
+      const insight = getFollowUpInsight(
+        business,
+        activitiesByBusiness[business.id] ?? [],
+        dms,
+        undefined,
+        null,
+      );
       items.push({
         business,
         decisionMaker: null,
@@ -117,6 +153,13 @@ export function expandFollowUpListByContact(businesses, activitiesByBusiness, dm
     }
 
     for (const decisionMaker of contacts) {
+      const insight = getFollowUpInsight(
+        business,
+        activitiesByBusiness[business.id] ?? [],
+        dms,
+        undefined,
+        decisionMaker,
+      );
       items.push({
         business,
         decisionMaker,

@@ -34,23 +34,27 @@ function isDueTodayAt(followUpAt, now = new Date()) {
 function matchesChannel(entry, channelFilter) {
   if (!channelFilter || channelFilter === 'all') return true;
   const state = entry.playbookState;
-  const current = state?.current;
   const dm = entry.decisionMaker;
-  const phoneSteps = (state?.steps ?? []).filter((s) => s.channel === 'phone');
-  const phoneIncomplete = phoneSteps.some((s) => !s.done);
-  const phoneDone = !state?.channels?.phone || phoneSteps.every((s) => s.done);
+  if (state?.engaged) return true;
+
+  const trackDue = (channel) => {
+    const track = state?.tracks?.[channel];
+    if (track?.current) return true;
+    if (state?.currentSteps?.some((s) => s.channel === channel)) return true;
+    return state?.channels?.[channel] && track && !track.allDone;
+  };
 
   if (channelFilter === 'phone') {
-    if (!contactHasChannel(dm, 'phone') && !state?.channels?.phone) return false;
-    if (current?.channel === 'phone') return true;
-    if (!current && state?.channels?.phone && phoneIncomplete) return true;
-    return false;
+    if (!contactHasChannel(dm, 'phone', entry.business) && !state?.channels?.phone) {
+      return false;
+    }
+    return trackDue('phone');
   }
   if (channelFilter === 'email') {
-    if (!contactHasChannel(dm, 'email') && !state?.channels?.email) return false;
-    if (current?.channel === 'email') return true;
-    if (!current && state?.channels?.email && phoneDone) return true;
-    return false;
+    if (!contactHasChannel(dm, 'email', entry.business) && !state?.channels?.email) {
+      return false;
+    }
+    return trackDue('email');
   }
   return true;
 }
@@ -62,7 +66,7 @@ export function buildWorkQueue(
   businesses = [],
   activitiesByBusiness = {},
   dmsByBusiness = {},
-  { channelFilter = 'all', includeNotReady = true } = {},
+  { channelFilter = 'all', includeNotReady = true, timing } = {},
 ) {
   const now = new Date();
   const items = [];
@@ -73,14 +77,19 @@ export function buildWorkQueue(
     const activities = activitiesByBusiness[business.id] ?? [];
     const decisionMakers = dmsByBusiness[business.id] ?? [];
     const businessReadiness = getLeadReadiness(business, decisionMakers);
-    const insight = getFollowUpInsight(business, activities, decisionMakers);
-    const playbookState = getPlaybookState(business, decisionMakers, activities);
-
     const contacts = getOutreachContactsForBusiness(business, decisionMakers);
 
     if (!contacts.length) {
       if (!includeNotReady && !businessReadiness.ready) continue;
       const followUpAt = business.next_followup_at;
+      const insight = getFollowUpInsight(business, activities, decisionMakers, timing, null);
+      const playbookState = getPlaybookState(
+        business,
+        decisionMakers,
+        activities,
+        timing,
+        null,
+      );
       const entry = {
         id: `${business.id}:none`,
         decisionMaker: null,
@@ -104,6 +113,22 @@ export function buildWorkQueue(
       const contactReadiness = getContactReadiness(decisionMaker, business);
       if (!includeNotReady && !contactReadiness.ready) continue;
 
+      const contactActivities = activities;
+      const insight = getFollowUpInsight(
+        business,
+        contactActivities,
+        decisionMakers,
+        timing,
+        decisionMaker,
+      );
+      const playbookState = getPlaybookState(
+        business,
+        decisionMakers,
+        contactActivities,
+        timing,
+        decisionMaker,
+      );
+
       const followUpAt =
         decisionMaker.next_followup_at || business.next_followup_at || null;
       const contactIndex = contacts.findIndex((c) => c.id === decisionMaker.id);
@@ -112,7 +137,7 @@ export function buildWorkQueue(
         decisionMaker,
         business,
         decisionMakers,
-        activities,
+        activities: contactActivities,
         readiness: businessReadiness,
         contactReadiness,
         insight,

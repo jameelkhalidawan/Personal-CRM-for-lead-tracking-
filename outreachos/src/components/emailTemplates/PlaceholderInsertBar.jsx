@@ -9,12 +9,16 @@ export function PlaceholderInsertBar({ activeField, onInsert }) {
         <p className="text-small text-text-muted">
           Into:{' '}
           <span className="text-text-secondary font-medium">
-            {activeField === 'subject' ? 'Subject' : 'Body'}
+            {activeField === 'subject'
+              ? 'Subject'
+              : activeField === 'script'
+                ? 'Script'
+                : 'Body'}
           </span>
         </p>
       </div>
       <p className="text-small text-text-muted">
-        Click to paste at your cursor. Focus subject or body first.
+        Click to paste at your cursor. Focus the field you want to edit first.
       </p>
       <div className="flex flex-wrap gap-2">
         {TEMPLATE_PLACEHOLDERS.map((p) => (

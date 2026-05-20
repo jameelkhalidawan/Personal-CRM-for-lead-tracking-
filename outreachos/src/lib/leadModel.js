@@ -24,11 +24,26 @@ export function getEffectiveFollowUpAt(decisionMaker, business) {
   return decisionMaker?.next_followup_at || business?.next_followup_at || null;
 }
 
-export function contactHasChannel(decisionMaker, channel) {
+export function contactHasChannel(decisionMaker, channel, business = null) {
   if (!decisionMaker) return false;
-  if (channel === 'phone') return hasValue(decisionMaker.phone_number);
-  if (channel === 'email') return hasValue(decisionMaker.email);
-  return hasValue(decisionMaker.phone_number) || hasValue(decisionMaker.email);
+  if (channel === 'phone') {
+    return hasValue(decisionMaker.phone_number) || hasValue(business?.phone_number);
+  }
+  if (channel === 'email') {
+    return hasValue(decisionMaker.email) || hasValue(business?.business_email);
+  }
+  return (
+    hasValue(decisionMaker.phone_number) ||
+    hasValue(decisionMaker.email) ||
+    hasValue(business?.phone_number) ||
+    hasValue(business?.business_email)
+  );
+}
+
+/** Activities logged for one decision maker (each contact is their own lead). */
+export function filterActivitiesForContact(activities, decisionMakerId) {
+  if (!decisionMakerId) return activities ?? [];
+  return (activities ?? []).filter((a) => a.decision_maker_id === decisionMakerId);
 }
 
 function isReachableContact(decisionMaker, business) {

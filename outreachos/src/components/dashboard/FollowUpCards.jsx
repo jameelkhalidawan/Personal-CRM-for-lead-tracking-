@@ -1,26 +1,28 @@
-import { AlertCircle, CalendarClock, Clock, ListTodo } from 'lucide-react';
+import { CalendarClock, Sun, Sunrise } from 'lucide-react';
 import { formatDateTime } from '../../lib/format';
 import { PriorityBadge, StatusBadge } from '../ui/Badge';
 import { Card, CardBody } from '../ui/Card';
-
 import { LeadIdentity } from '../businesses/LeadIdentity';
+import { cn } from '../../lib/cn';
 
-function FollowUpCard({ item, variant, onOpen, rich = false }) {
-  const { business, insight, decisionMaker } = item;
+function FollowUpCard({ item, variant, onOpen }) {
+  const { business, insight, decisionMaker, followUpAt, isOverdue } = item;
   const border =
-    variant === 'overdue'
+    variant === 'today' && isOverdue
       ? 'border-priority-high/50'
       : variant === 'today'
         ? 'border-accent-secondary/50'
         : 'border-border';
 
-  const width = rich ? 'w-[300px]' : 'w-[260px]';
-
   return (
     <button
       type="button"
-      onClick={() => onOpen(business.id)}
-      className={`shrink-0 ${width} rounded-lg border bg-background-card p-3 text-left transition-colors hover:bg-background-elevated/60 ${border}`}
+      onClick={() => onOpen(business.id, decisionMaker?.id ?? null)}
+      className={cn(
+        'shrink-0 w-[300px] rounded-lg border bg-background-card p-3 text-left',
+        'transition-colors hover:bg-background-elevated/60',
+        border,
+      )}
     >
       <div className="flex items-start justify-between gap-2">
         <LeadIdentity
@@ -31,81 +33,77 @@ function FollowUpCard({ item, variant, onOpen, rich = false }) {
         <StatusBadge status={business.status} className="shrink-0 scale-90" />
       </div>
 
-      {item.contactTotal > 1 && (
+      {isOverdue && (
+        <p className="text-[10px] font-medium text-priority-high mt-1">Overdue</p>
+      )}
+
+      {item.contactTotal > 1 && decisionMaker && (
         <p className="text-[10px] text-text-muted mt-1">
-          Contact {item.contactIndex} of {item.contactTotal} at {business.business_name}
+          at {business.business_name}
         </p>
       )}
 
-      {rich && (
-        <div className="mt-3 space-y-2 border-t border-border pt-2">
-          <div className="flex items-start gap-1.5">
-            <ListTodo className="h-3.5 w-3.5 text-accent-secondary shrink-0 mt-0.5" />
-            <div>
-              <p className="text-label uppercase text-text-muted text-[10px]">Next action</p>
-              <p className="text-small text-text-primary font-medium leading-snug">
-                {insight.nextAction}
-              </p>
-            </div>
-          </div>
-          <p className="text-xs text-text-muted pl-5">{insight.processLabel}</p>
-          {insight.lastActivityLabel && (
-            <p className="text-xs text-text-muted pl-5">
-              Last logged: {insight.lastActivityLabel}
-            </p>
-          )}
-          {insight.note && (
-            <p className="text-xs text-text-secondary pl-5 line-clamp-3 italic">
-              &ldquo;{insight.note}&rdquo;
-            </p>
-          )}
+      {insight && (
+        <div className="mt-3 space-y-1 border-t border-border pt-2">
+          <p className="text-label uppercase text-text-muted text-[10px]">
+            Next action
+          </p>
+          <p className="text-small text-text-primary font-medium leading-snug">
+            {insight.nextAction}
+          </p>
+          <p className="text-xs text-text-muted">{insight.processLabel}</p>
         </div>
       )}
 
       <div className="flex items-center justify-between gap-2 mt-3">
         <PriorityBadge priority={business.priority} />
         <span className="text-xs text-text-muted whitespace-nowrap">
-          {formatDateTime(business.next_followup_at)}
+          {formatDateTime(followUpAt)}
         </span>
       </div>
     </button>
   );
 }
 
-function Section({ title, icon: Icon, items, variant, onOpen, rich }) {
-  if (!items.length) return null;
+function Section({ title, subtitle, icon: Icon, items, variant, onOpen }) {
   return (
     <div className="mb-6">
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-1">
         <Icon className="h-4 w-4 text-text-muted" />
         <h3 className="text-h3 text-text-primary">{title}</h3>
         <span className="text-small text-text-muted">({items.length})</span>
       </div>
-      <div className="flex gap-3 overflow-x-auto pb-2">
-        {items.map((item) => (
-          <FollowUpCard
-            key={item.business.id}
-            item={item}
-            variant={variant}
-            onOpen={onOpen}
-            rich={rich}
-          />
-        ))}
-      </div>
+      {subtitle && (
+        <p className="text-small text-text-muted mb-3 ml-6">{subtitle}</p>
+      )}
+      {items.length === 0 ? (
+        <p className="text-small text-text-muted ml-6 py-2">Nothing scheduled.</p>
+      ) : (
+        <div className="flex gap-3 overflow-x-auto pb-2">
+          {items.map((item) => (
+            <FollowUpCard
+              key={item.key}
+              item={item}
+              variant={variant}
+              onOpen={onOpen}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
-export function FollowUpCards({ buckets, onOpenBusiness, loadingContext }) {
-  const hasAny =
-    buckets.overdue.length || buckets.dueToday.length || buckets.upcoming.length;
+export function FollowUpCards({ buckets, onOpenLead }) {
+  const hasAny = buckets.today.length || buckets.tomorrow.length;
 
   if (!hasAny) {
     return (
       <Card className="mb-8">
         <CardBody>
           <p className="text-body text-text-secondary">
-            No scheduled follow-ups. Set a next follow-up date when logging activities.
+            Nothing due today or tomorrow. Set a next follow-up on a contact when you
+            log outreach — it will show up here on the right day.
           </p>
         </CardBody>
       </Card>
@@ -114,35 +112,26 @@ export function FollowUpCards({ buckets, onOpenBusiness, loadingContext }) {
 
   return (
     <div className="mb-8">
-      <h2 className="text-h3 text-text-primary mb-1">Today&apos;s actions</h2>
+      <h2 className="text-h3 text-text-primary mb-1">Your schedule</h2>
       <p className="text-small text-text-muted mb-4">
-        {loadingContext
-          ? 'Loading next steps and notes…'
-          : 'Shows pipeline status, suggested outreach step, and notes where available.'}
+        What to do today (including overdue) and what is planned for tomorrow — per
+        contact.
       </p>
       <Section
-        title="Overdue"
-        icon={AlertCircle}
-        items={buckets.overdue}
-        variant="overdue"
-        onOpen={onOpenBusiness}
-        rich
-      />
-      <Section
-        title="Due today"
-        icon={CalendarClock}
-        items={buckets.dueToday}
+        title="Do today"
+        subtitle="Overdue and due today"
+        icon={Sun}
+        items={buckets.today}
         variant="today"
-        onOpen={onOpenBusiness}
-        rich
+        onOpen={onOpenLead}
       />
       <Section
-        title="Coming up"
-        icon={Clock}
-        items={buckets.upcoming}
-        variant="upcoming"
-        onOpen={onOpenBusiness}
-        rich
+        title="Tomorrow"
+        subtitle="Follow-ups scheduled for tomorrow only"
+        icon={Sunrise}
+        items={buckets.tomorrow}
+        variant="tomorrow"
+        onOpen={onOpenLead}
       />
     </div>
   );

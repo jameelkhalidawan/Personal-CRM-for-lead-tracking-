@@ -56,9 +56,14 @@ export function ActivityPanel({
           notes: preset.notes ?? '',
           followup_at: preset.followup_at ?? '',
           decision_maker_id: preset.decision_maker_id ?? '',
+          outreach_channel:
+            preset.outreach_channel ??
+            EMPTY_ACTIVITY_FORM.outreach_channel,
           email_subject: preset.email_subject ?? '',
           email_body: preset.email_body ?? '',
           template_id: preset.template_id ?? '',
+          call_template_id: preset.call_template_id ?? '',
+          call_script_id: preset.call_script_id ?? '',
         });
         setStageLabel(preset.step?.label ?? preset.reason ?? null);
       } else {
@@ -84,6 +89,10 @@ export function ActivityPanel({
 
   const handleSave = async () => {
     if (!businessId || !form.type) return;
+    if (form.type === 'closed' && !form.outreach_channel) {
+      window.alert('Select the winning channel (call or email) so close rates stay accurate.');
+      return;
+    }
     const result = isCreate
       ? await create(businessId, form)
       : await update(activity.id, businessId, form);
@@ -182,6 +191,16 @@ export function ActivityPanel({
             value={formatDateTime(activity.created_at)}
           />
           <DetailField label="Contact" value={activity.decision_maker_name} />
+          <DetailField
+            label="Channel"
+            value={
+              activity.outreach_channel === 'phone'
+                ? 'Call / phone'
+                : activity.outreach_channel === 'email'
+                  ? 'Email'
+                  : null
+            }
+          />
           <DetailField label="Notes" value={activity.notes} />
           <DetailField
             label="Follow-up scheduled"

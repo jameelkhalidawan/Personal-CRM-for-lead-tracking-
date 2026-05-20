@@ -4,6 +4,7 @@ import { AppearanceSettingsCard } from '../components/settings/AppearanceSetting
 import { ReminderSettingsCard } from '../components/settings/ReminderSettingsCard';
 import { StartupSettingsCard } from '../components/settings/StartupSettingsCard';
 import { ServiceTemplateSettingsCard } from '../components/settings/ServiceTemplateSettingsCard';
+import { OutreachTimingSettingsCard } from '../components/settings/OutreachTimingSettingsCard';
 import { Button } from '../components/ui/Button';
 import { Card, CardBody, CardHeader } from '../components/ui/Card';
 import { useAuthStore } from '../stores/authStore';
@@ -35,6 +36,7 @@ export function SettingsPage() {
         </Card>
 
         <ReminderSettingsCard />
+        <OutreachTimingSettingsCard />
         <ServiceTemplateSettingsCard />
         <AppearanceSettingsCard />
         <StartupSettingsCard />

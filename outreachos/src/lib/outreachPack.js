@@ -1,4 +1,5 @@
 import { getFollowUpInsight } from './followUpInsight';
+import { readOutreachTimingFromStorage } from './outreachTiming';
 import { getPlaybookState } from './outreachSequence';
 import { getLeadTitle, getLeadContext, getEffectiveFollowUpAt } from './leadModel';
 
@@ -10,10 +11,24 @@ export function buildOutreachPack({
   user,
   emailSubject = '',
   emailBody = '',
+  timing,
 }) {
   const dm = decisionMaker ?? decisionMakers[0] ?? null;
-  const insight = getFollowUpInsight(business, activities, decisionMakers);
-  const state = getPlaybookState(business, decisionMakers, activities);
+  const resolvedTiming = timing ?? readOutreachTimingFromStorage();
+  const insight = getFollowUpInsight(
+    business,
+    activities,
+    decisionMakers,
+    resolvedTiming,
+    dm,
+  );
+  const state = getPlaybookState(
+    business,
+    decisionMakers,
+    activities,
+    resolvedTiming,
+    dm,
+  );
   const followUpAt = getEffectiveFollowUpAt(dm, business);
   const yourName =
     user?.user_metadata?.full_name ||
@@ -39,7 +54,11 @@ export function buildOutreachPack({
     '--- Next step ---',
     `Action: ${insight.nextAction}`,
     `Process: ${insight.processLabel}`,
-    state.current ? `Playbook: ${state.current.label}` : null,
+    state.currentSteps?.length
+      ? `Playbook: ${state.currentSteps.map((s) => s.label).join(' + ')}`
+      : state.current
+        ? `Playbook: ${state.current.label}`
+        : null,
     followUpAt ? `Follow-up: ${new Date(followUpAt).toLocaleString()}` : null,
     insight.note ? `Notes: ${insight.note}` : null,
     business?.problem_notes ? `Problem notes: ${business.problem_notes}` : null,

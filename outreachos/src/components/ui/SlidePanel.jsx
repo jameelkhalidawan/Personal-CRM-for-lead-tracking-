@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { cn } from '../../lib/cn';
 
@@ -21,7 +22,7 @@ export function SlidePanel({
 
   if (!open) return null;
 
-  return (
+  const panel = (
     <div className={cn('fixed inset-0 flex justify-end', zClass)}>
       <button
         type="button"
@@ -55,4 +56,6 @@ export function SlidePanel({
       </aside>
     </div>
   );
+
+  return createPortal(panel, document.body);
 }

@@ -71,3 +71,15 @@ export function formatEmailForNotes(subject, body) {
 export function isEmailActivityType(type) {
   return type === 'cold_email' || type === 'followup_email';
 }
+
+export function isCallActivityType(type) {
+  return type === 'call';
+}
+
+export function formatCallNotes(scriptLabel, body) {
+  const label = scriptLabel?.trim();
+  const text = body?.trim();
+  if (!text) return '';
+  if (label) return `Script (${label}):\n${text}`;
+  return text;
+}

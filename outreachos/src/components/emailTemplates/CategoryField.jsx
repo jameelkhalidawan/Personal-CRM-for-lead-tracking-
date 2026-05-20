@@ -1,8 +1,13 @@
 import { Input } from '../ui/Input';
 
 /** Free-text category with suggestions from existing templates */
-export function CategoryField({ value, onChange, suggestions = [], label = 'Category' }) {
-  const listId = 'email-template-categories';
+export function CategoryField({
+  value,
+  onChange,
+  suggestions = [],
+  label = 'Category',
+  listId = 'email-template-categories',
+}) {
 
   return (
     <div>

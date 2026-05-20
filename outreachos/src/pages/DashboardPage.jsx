@@ -11,15 +11,12 @@ import { useAuthStore } from '../stores/authStore';
 import { useBusinessStore } from '../stores/businessStore';
 import { useActivityStore } from '../stores/activityStore';
 import { fetchDecisionMakersForBusinesses } from '../lib/decisionMakerApi';
-import {
-  computeDashboardStats,
-  getFollowUpBuckets,
-} from '../lib/dashboardStats';
-import {
-  expandFollowUpListByContact,
-  groupActivitiesByBusiness,
-} from '../lib/followUpInsight';
-import { buildInsightsByBusinessId } from '../lib/insightsMap';
+import { computeDashboardMetrics } from '../lib/dashboardMetrics';
+import { getTodayTomorrowBucketsByContact } from '../lib/dashboardStats';
+import { groupActivitiesByBusiness, getFollowUpInsight } from '../lib/followUpInsight';
+import { buildInsightsByContactKey } from '../lib/insightsMap';
+import { expandLeadsByContact } from '../lib/leadExpansion';
+import { useOutreachTiming } from '../hooks/useOutreachTiming';
 
 export function DashboardPage() {
   const navigate = useNavigate();
@@ -39,7 +36,7 @@ export function DashboardPage() {
 
   const [createOpen, setCreateOpen] = useState(false);
   const [dmsByBusiness, setDmsByBusiness] = useState({});
-  const [loadingContext, setLoadingContext] = useState(false);
+  const outreachTiming = useOutreachTiming();
 
   const displayName =
     user?.user_metadata?.full_name ||
@@ -61,8 +58,11 @@ export function DashboardPage() {
     unsubscribeRealtime,
   ]);
 
-  const stats = useMemo(() => computeDashboardStats(businesses), [businesses]);
-  const rawFollowUps = useMemo(() => getFollowUpBuckets(businesses), [businesses]);
+  const metrics = useMemo(
+    () => computeDashboardMetrics(businesses, dmsByBusiness, activities),
+    [businesses, dmsByBusiness, activities],
+  );
+
   const activitiesByBusiness = useMemo(
     () => groupActivitiesByBusiness(activities),
     [activities],
@@ -71,71 +71,65 @@ export function DashboardPage() {
   const allBusinessIds = useMemo(() => businesses.map((b) => b.id), [businesses]);
 
   useEffect(() => {
-    if (!allBusinessIds.length) return;
-    fetchDecisionMakersForBusinesses(allBusinessIds)
-      .then((map) => setDmsByBusiness((prev) => ({ ...prev, ...map })))
-      .catch(() => {});
-  }, [allBusinessIds.join(',')]);
-
-  const insightsByBusinessId = useMemo(
-    () => buildInsightsByBusinessId(businesses, activitiesByBusiness, dmsByBusiness),
-    [businesses, activitiesByBusiness, dmsByBusiness],
-  );
-
-  const followUpBusinessIds = useMemo(() => {
-    const ids = [
-      ...rawFollowUps.overdue,
-      ...rawFollowUps.dueToday,
-      ...rawFollowUps.upcoming,
-    ].map((b) => b.id);
-    return [...new Set(ids)];
-  }, [rawFollowUps]);
-
-  useEffect(() => {
-    if (!followUpBusinessIds.length) {
+    if (!allBusinessIds.length) {
       setDmsByBusiness({});
       return;
     }
-    let cancelled = false;
-    setLoadingContext(true);
-    fetchDecisionMakersForBusinesses(followUpBusinessIds)
-      .then((map) => {
-        if (!cancelled) setDmsByBusiness(map);
-      })
-      .catch(() => {
-        if (!cancelled) setDmsByBusiness({});
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingContext(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [followUpBusinessIds.join(',')]);
+    fetchDecisionMakersForBusinesses(allBusinessIds)
+      .then(setDmsByBusiness)
+      .catch(() => setDmsByBusiness({}));
+  }, [allBusinessIds.join(',')]);
 
-  const followUps = useMemo(
-    () => ({
-      overdue: expandFollowUpListByContact(
-        rawFollowUps.overdue,
+  const insightsByContactKey = useMemo(
+    () =>
+      buildInsightsByContactKey(
+        businesses,
         activitiesByBusiness,
         dmsByBusiness,
+        outreachTiming,
       ),
-      dueToday: expandFollowUpListByContact(
-        rawFollowUps.dueToday,
-        activitiesByBusiness,
-        dmsByBusiness,
-      ),
-      upcoming: expandFollowUpListByContact(
-        rawFollowUps.upcoming,
-        activitiesByBusiness,
-        dmsByBusiness,
-      ),
-    }),
-    [rawFollowUps, activitiesByBusiness, dmsByBusiness],
+    [businesses, activitiesByBusiness, dmsByBusiness, outreachTiming],
   );
 
-  const openBusiness = (id) => {
-    navigate('/businesses', { state: { openBusinessId: id } });
+  const leads = useMemo(
+    () => expandLeadsByContact(businesses, dmsByBusiness),
+    [businesses, dmsByBusiness],
+  );
+
+  const enrichBucket = (items) =>
+    items.map((item) => ({
+      ...item,
+      insight: getFollowUpInsight(
+        item.business,
+        activitiesByBusiness[item.business.id] ?? [],
+        dmsByBusiness[item.business.id] ?? [],
+        outreachTiming,
+        item.decisionMaker,
+      ),
+      contactIndex: item.decisionMaker
+        ? (dmsByBusiness[item.business.id] ?? []).findIndex(
+            (d) => d.id === item.decisionMaker.id,
+          ) + 1
+        : 1,
+      contactTotal: (dmsByBusiness[item.business.id] ?? []).filter((d) =>
+        Boolean(d.name?.trim()),
+      ).length,
+    }));
+
+  const followUps = useMemo(() => {
+    const buckets = getTodayTomorrowBucketsByContact(businesses, dmsByBusiness);
+    return {
+      today: enrichBucket(buckets.today),
+      tomorrow: enrichBucket(buckets.tomorrow),
+    };
+  }, [businesses, dmsByBusiness, activitiesByBusiness, outreachTiming]);
+
+  const openLead = (businessId, contactId = null) => {
+    navigate('/businesses', {
+      state: contactId
+        ? { openBusinessId: businessId, focusContactId: contactId }
+        : { openBusinessId: businessId },
+    });
   };
 
   const handleStatusChange = async (id, status) => {
@@ -146,7 +140,7 @@ export function DashboardPage() {
     <>
       <PageHeader
         title={`Hello, ${displayName}`}
-        description="Pipeline overview, follow-ups, and quick actions."
+        description="What to do today, what's planned for tomorrow, and pipeline."
         actions={
           <Button onClick={() => setCreateOpen(true)}>
             <Plus className="h-4 w-4" />
@@ -164,19 +158,14 @@ export function DashboardPage() {
         </div>
       )}
 
-      <StatsBar stats={stats} loading={loading} />
-      <FollowUpCards
-        buckets={followUps}
-        onOpenBusiness={openBusiness}
-        loadingContext={loadingContext}
-      />
+      <StatsBar metrics={metrics} loading={loading} />
+      <FollowUpCards buckets={followUps} onOpenLead={openLead} />
       <PipelineKanban
-        businesses={businesses}
+        leads={leads}
         loading={loading}
-        insightsByBusinessId={insightsByBusinessId}
-        dmsByBusiness={dmsByBusiness}
+        insightsByContactKey={insightsByContactKey}
         onStatusChange={handleStatusChange}
-        onOpenBusiness={openBusiness}
+        onOpenLead={openLead}
       />
 
       <BusinessCreatePanel

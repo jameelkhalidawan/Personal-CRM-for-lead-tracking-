@@ -2,12 +2,18 @@ import { Activity, Pencil, Trash2, UserPlus } from 'lucide-react';
 import { ActivityPanel } from '../activities/ActivityPanel';
 import { ActivityTimeline } from '../activities/ActivityTimeline';
 import { OutreachPlaybook } from '../activities/OutreachPlaybook';
-import { getSuggestedPreset, presetFromOutcome } from '../../lib/outreachSequence';
+import {
+  getSuggestedPreset,
+  getPlaybookState,
+  getPlaybookProgressSummary,
+  presetFromOutcome,
+} from '../../lib/outreachSequence';
 import { LeadIdentity } from './LeadIdentity';
 import { LeadReadinessBadge } from './LeadReadinessBadge';
 import { CopyOutreachPackButton } from './CopyOutreachPackButton';
 import { pickPrimaryContact } from '../../lib/contactPick';
 import { useLeadShortcuts } from '../../hooks/useLeadShortcuts';
+import { useOutreachTiming } from '../../hooks/useOutreachTiming';
 import { buildOutreachPack } from '../../lib/outreachPack';
 import { useAuthStore } from '../../stores/authStore';
 import { DecisionMakerPanel } from '../decisionMakers/DecisionMakerPanel';
@@ -69,6 +75,7 @@ export function BusinessDetailPanel({
   const [activityPanel, setActivityPanel] = useState(null);
   const [activityDelete, setActivityDelete] = useState(null);
   const [activeContactId, setActiveContactId] = useState(null);
+  const outreachTiming = useOutreachTiming();
 
   useEffect(() => {
     if (open && businessId && (mode === 'view' || mode === 'edit')) {
@@ -121,6 +128,8 @@ export function BusinessDetailPanel({
       business,
       detail?.decisionMakers,
       detail?.activities,
+      outreachTiming,
+      dm,
     );
     setActivityPanel({
       mode: 'create',
@@ -132,7 +141,13 @@ export function BusinessDetailPanel({
     if (!business) return;
     const suggested =
       activityPreset ??
-      getSuggestedPreset(business, detail?.decisionMakers, detail?.activities);
+      getSuggestedPreset(
+        business,
+        detail?.decisionMakers,
+        detail?.activities,
+        outreachTiming,
+        focusContact,
+      );
     setActivityPanel({
       mode: 'create',
       preset: buildPresetForContact(suggested),
@@ -152,6 +167,7 @@ export function BusinessDetailPanel({
         decisionMakers: detail?.decisionMakers,
         activities: detail?.activities,
         user,
+        timing: outreachTiming,
       });
       await navigator.clipboard?.writeText(text);
     },
@@ -319,12 +335,21 @@ export function BusinessDetailPanel({
               Decision makers ({detail.decisionMakers?.length ?? 0})
             </p>
             <p className="text-small text-text-muted mb-3">
-              Each contact can be reached separately. Select who you are outreach to, or log per
-              person below.
+              Each contact is their own lead — separate call/email progress until they engage.
+              Select a target to view their playbook.
             </p>
             {detail.decisionMakers?.length ? (
               <ul className="space-y-2">
-                {detail.decisionMakers.map((dm) => (
+                {detail.decisionMakers.map((dm) => {
+                  const dmState = getPlaybookState(
+                    business,
+                    detail.decisionMakers,
+                    detail.activities,
+                    outreachTiming,
+                    dm,
+                  );
+                  const progress = getPlaybookProgressSummary(dmState);
+                  return (
                   <li
                     key={dm.id}
                     className={`rounded-lg border ${
@@ -361,6 +386,11 @@ export function BusinessDetailPanel({
                             {dm.phone_number}
                           </span>
                         )}
+                        {progress && (
+                          <span className="block text-accent-secondary text-xs mt-0.5">
+                            Next: {progress}
+                          </span>
+                        )}
                       </span>
                       <PreferredContactIcon method={dm.preferred_contact} />
                     </button>
@@ -382,7 +412,8 @@ export function BusinessDetailPanel({
                       </Button>
                     </div>
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             ) : (
               <div className="space-y-3">
@@ -403,6 +434,7 @@ export function BusinessDetailPanel({
           <OutreachPlaybook
             business={business}
             decisionMakers={detail.decisionMakers}
+            decisionMaker={focusContact}
             activities={detail.activities}
             saving={activitySaving}
             onLogStep={(preset, step) =>
@@ -411,13 +443,16 @@ export function BusinessDetailPanel({
                 preset: buildPresetForContact({ ...preset, step }),
               })
             }
-            onLogOutcome={(action) =>
+            onLogOutcome={(action, channel) =>
               setActivityPanel({
                 mode: 'create',
-                preset: buildPresetForContact(presetFromOutcome(action)),
+                preset: buildPresetForContact(presetFromOutcome(action, channel)),
               })
             }
             onLogCallOutcome={(preset) =>
+              setActivityPanel({ mode: 'create', preset: buildPresetForContact(preset) })
+            }
+            onLogEmailOutcome={(preset) =>
               setActivityPanel({ mode: 'create', preset: buildPresetForContact(preset) })
             }
             onCustomLog={() =>
@@ -437,7 +472,13 @@ export function BusinessDetailPanel({
               Activity timeline
             </p>
             <ActivityTimeline
-              activities={detail.activities}
+              activities={
+                focusContact
+                  ? detail.activities.filter(
+                      (a) => a.decision_maker_id === focusContact.id,
+                    )
+                  : detail.activities
+              }
               onSelect={(a) => setActivityPanel({ mode: 'view', activity: a })}
             />
           </div>

@@ -11,11 +11,20 @@ function App() {
     useAuthStore();
 
   const initializePrefs = usePreferencesStore((s) => s.initialize);
+  const syncFromStorage = usePreferencesStore((s) => s.syncFromStorage);
 
   useEffect(() => {
     initialize();
     initializePrefs();
   }, [initialize, initializePrefs]);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') syncFromStorage();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [syncFromStorage]);
 
   if (!initialized || (loading && !session)) {
     return (

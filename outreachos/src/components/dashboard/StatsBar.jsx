@@ -17,11 +17,11 @@ function StatCard({ label, value, sub, accent }) {
   );
 }
 
-export function StatsBar({ stats, loading }) {
+export function StatsBar({ metrics, loading }) {
   if (loading) {
     return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-        {Array.from({ length: 4 }).map((_, i) => (
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+        {Array.from({ length: 6 }).map((_, i) => (
           <Card key={i}>
             <CardBody className="py-4">
               <div className="h-4 w-24 animate-pulse rounded bg-background-elevated mb-2" />
@@ -33,20 +33,45 @@ export function StatsBar({ stats, loading }) {
     );
   }
 
+  const m = metrics ?? {};
+
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-      <StatCard label="Active leads" value={stats.activeLeads} sub={`${stats.total} total`} />
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8">
       <StatCard
-        label="Overdue follow-ups"
-        value={stats.overdue}
-        accent={stats.overdue > 0}
-        sub={stats.overdue > 0 ? 'Needs attention' : 'All clear'}
+        label="Total leads"
+        value={m.totalLeads ?? 0}
+        sub="Contacts in your pipeline"
       />
-      <StatCard label="Due today" value={stats.dueToday} sub="Scheduled for today" />
       <StatCard
-        label="Pipeline value"
-        value={formatCurrency(stats.pipelineValue)}
-        sub="Estimated across all leads"
+        label="Active deals"
+        value={m.activeDeals ?? 0}
+        sub="Closed as win"
+        accent={(m.activeDeals ?? 0) > 0}
+      />
+      <StatCard
+        label="Call close rate"
+        value={m.callCloseRateLabel ?? '—'}
+        sub={m.callCloseSub}
+      />
+      <StatCard
+        label="Email close rate"
+        value={m.emailCloseRateLabel ?? '—'}
+        sub={m.emailCloseSub}
+      />
+      <StatCard
+        label="Conversion rate"
+        value={m.conversionRateLabel ?? '—'}
+        sub={m.conversionSub}
+      />
+      <StatCard
+        label="Active projects value"
+        value={formatCurrency(m.activeProjectsValue ?? 0)}
+        sub={
+          m.wonBusinessCount
+            ? `${m.wonBusinessCount} won ${m.wonBusinessCount === 1 ? 'company' : 'companies'}`
+            : 'Won deal value'
+        }
+        accent={(m.activeProjectsValue ?? 0) > 0}
       />
     </div>
   );

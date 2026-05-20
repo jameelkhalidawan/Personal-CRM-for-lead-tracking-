@@ -30,6 +30,45 @@ export const ACTIVITY_TYPE_LABELS = Object.fromEntries(
 );
 
 /** One-click call results (#4) */
+/** One-click email results (parallel to call results) */
+export const EMAIL_OUTCOME_ACTIONS = [
+  {
+    id: 'no_reply',
+    label: 'No reply',
+    notes: 'Email sent — no reply yet.',
+    followupDays: 3,
+    activityType: 'followup_email',
+  },
+  {
+    id: 'bounced',
+    label: 'Bounced',
+    notes: 'Email bounced — verify address.',
+    followupDays: 0,
+    activityType: 'note',
+  },
+  {
+    id: 'opened_no_reply',
+    label: 'Opened, no reply',
+    notes: 'Opened but no reply — schedule follow-up.',
+    followupDays: 4,
+    activityType: 'followup_email',
+  },
+  {
+    id: 'replied_interested',
+    label: 'Replied — interested',
+    notes: 'They replied and showed interest.',
+    followupDays: 2,
+    activityType: 'followup_email',
+  },
+  {
+    id: 'replied_not_now',
+    label: 'Replied — not now',
+    notes: 'They replied — not interested right now.',
+    followupDays: 14,
+    activityType: 'followup_email',
+  },
+];
+
 export const CALL_OUTCOME_ACTIONS = [
   {
     id: 'no_answer',
@@ -97,7 +136,10 @@ export const EMPTY_ACTIVITY_FORM = {
   decision_maker_id: '',
   notes: '',
   followup_at: '',
+  outreach_channel: 'phone',
   email_subject: '',
   email_body: '',
   template_id: '',
+  call_template_id: '',
+  call_script_id: '',
 };

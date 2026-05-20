@@ -15,6 +15,7 @@ import { groupActivitiesByBusiness } from '../lib/followUpInsight';
 import { fetchDecisionMakersForBusinesses } from '../lib/decisionMakerApi';
 import { getSuggestedPreset } from '../lib/outreachSequence';
 import { useLeadShortcuts } from '../hooks/useLeadShortcuts';
+import { useOutreachTiming } from '../hooks/useOutreachTiming';
 import { useBusinessStore } from '../stores/businessStore';
 import { useActivityStore } from '../stores/activityStore';
 import { useAuthStore } from '../stores/authStore';
@@ -45,6 +46,7 @@ export function WorkQueuePage() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [panelMode, setPanelMode] = useState('view');
   const [showHelp, setShowHelp] = useState(false);
+  const outreachTiming = useOutreachTiming();
 
   useEffect(() => {
     loadBusinesses();
@@ -73,8 +75,16 @@ export function WorkQueuePage() {
       buildWorkQueue(businesses, activitiesByBusiness, dmsByBusiness, {
         channelFilter,
         includeNotReady: !readyOnly,
+        timing: outreachTiming,
       }),
-    [businesses, activitiesByBusiness, dmsByBusiness, channelFilter, readyOnly],
+    [
+      businesses,
+      activitiesByBusiness,
+      dmsByBusiness,
+      channelFilter,
+      readyOnly,
+      outreachTiming,
+    ],
   );
 
   const current = queue[index] ?? null;
@@ -118,9 +128,10 @@ export function WorkQueuePage() {
       decisionMakers: current.decisionMakers,
       activities: current.activities,
       user,
+      timing: outreachTiming,
     });
     await navigator.clipboard?.writeText(text);
-  }, [current, user]);
+  }, [current, user, outreachTiming]);
 
   useLeadShortcuts({
     enabled: !!current,
@@ -137,6 +148,8 @@ export function WorkQueuePage() {
           detailMatches.business,
           detailMatches.decisionMakers,
           detailMatches.activities,
+          outreachTiming,
+          current?.decisionMaker ?? null,
         );
         if (!base) return null;
         if (focusContactId) {

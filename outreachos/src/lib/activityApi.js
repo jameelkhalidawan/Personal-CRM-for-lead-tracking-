@@ -1,6 +1,7 @@
 import { OUTCOME_ACTIVITY_TYPES } from '../constants/activity';
 import { getSupabase } from './supabase';
 import { fromDatetimeLocalValue, toDatetimeLocalValue } from './format';
+import { getChannelForActivityType, resolveFormChannel } from './outreachChannel';
 import { formatEmailForNotes, isEmailActivityType } from './templateRender';
 
 const STATUS_FROM_OUTCOME = {
@@ -23,6 +24,11 @@ export function activityToForm(activity) {
     decision_maker_id: activity.decision_maker_id ?? '',
     notes: activity.notes ?? '',
     followup_at: toDatetimeLocalValue(activity.followup_at),
+    outreach_channel:
+      activity.outreach_channel ?? getChannelForActivityType(activity.type) ?? '',
+    email_subject: '',
+    email_body: '',
+    template_id: '',
   };
 }
 
@@ -46,6 +52,7 @@ function resolveActivityNotes(form) {
 }
 
 function buildPayload(form, businessId, performedBy) {
+  const channel = resolveFormChannel(form);
   return {
     business_id: businessId,
     decision_maker_id: form.decision_maker_id || null,
@@ -53,6 +60,7 @@ function buildPayload(form, businessId, performedBy) {
     type: form.type,
     notes: resolveActivityNotes(form),
     followup_at: fromDatetimeLocalValue(form.followup_at),
+    outreach_channel: channel,
   };
 }
 
@@ -157,6 +165,7 @@ export async function updateActivity(id, businessId, form, performedBy) {
       type: payload.type,
       notes: payload.notes,
       followup_at: payload.followup_at,
+      outreach_channel: payload.outreach_channel,
     })
     .eq('id', id)
     .select('*, decision_makers ( id, name )')

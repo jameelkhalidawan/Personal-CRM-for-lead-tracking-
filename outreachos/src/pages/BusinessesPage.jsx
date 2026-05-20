@@ -13,11 +13,12 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { Modal } from '../components/ui/Modal';
 import { TableSkeleton } from '../components/ui/TableSkeleton';
 import { useDebounce } from '../hooks/useDebounce';
+import { useOutreachTiming } from '../hooks/useOutreachTiming';
 import { useBusinessStore } from '../stores/businessStore';
 import { useActivityStore } from '../stores/activityStore';
 import { fetchDecisionMakersForBusinesses } from '../lib/decisionMakerApi';
 import { groupActivitiesByBusiness } from '../lib/followUpInsight';
-import { buildInsightsByBusinessId } from '../lib/insightsMap';
+import { buildInsightsByContactKey } from '../lib/insightsMap';
 
 export function BusinessesPage() {
   const location = useLocation();
@@ -43,10 +44,12 @@ export function BusinessesPage() {
   const debouncedSearch = useDebounce(localSearch, 300);
 
   const [panel, setPanel] = useState(null);
+  const [navFocusContactId, setNavFocusContactId] = useState(null);
   // panel: null | { type: 'view'|'edit'|'create', id?: string }
   const [deleteId, setDeleteId] = useState(null);
   const [dmsByBusiness, setDmsByBusiness] = useState({});
   const { items: activities, loadAll: loadActivities } = useActivityStore();
+  const outreachTiming = useOutreachTiming();
 
   useEffect(() => {
     setSearch(debouncedSearch);
@@ -76,24 +79,32 @@ export function BusinessesPage() {
     [activities],
   );
 
-  const insightsByBusinessId = useMemo(
-    () => buildInsightsByBusinessId(businesses, activitiesByBusiness, dmsByBusiness),
-    [businesses, activitiesByBusiness, dmsByBusiness],
+  const insightsByContactKey = useMemo(
+    () =>
+      buildInsightsByContactKey(
+        businesses,
+        activitiesByBusiness,
+        dmsByBusiness,
+        outreachTiming,
+      ),
+    [businesses, activitiesByBusiness, dmsByBusiness, outreachTiming],
   );
 
-  const openView = (id) => {
+  const openView = (id, contactId = null) => {
+    setNavFocusContactId(contactId);
     loadBusinessDetail(id);
     setPanel({ type: 'view', id });
   };
 
   useEffect(() => {
     const id = location.state?.openBusinessId;
+    const contactId = location.state?.focusContactId ?? null;
     if (id) {
-      openView(id);
+      openView(id, contactId);
       window.history.replaceState({}, document.title);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run when navigated with state
-  }, [location.state?.openBusinessId]);
+  }, [location.state?.openBusinessId, location.state?.focusContactId]);
 
   const hasFilters =
     localSearch.trim() ||
@@ -101,7 +112,10 @@ export function BusinessesPage() {
     filterPriority ||
     filterServiceIds.length > 0;
 
-  const closePanel = () => setPanel(null);
+  const closePanel = () => {
+    setPanel(null);
+    setNavFocusContactId(null);
+  };
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -153,9 +167,10 @@ export function BusinessesPage() {
       ) : (
         <BusinessTable
           businesses={businesses}
-          insightsByBusinessId={insightsByBusinessId}
+          insightsByContactKey={insightsByContactKey}
           dmsByBusinessId={dmsByBusiness}
-          onRowClick={openView}
+          onBusinessClick={(id) => openView(id, null)}
+          onContactClick={(id, contactId) => openView(id, contactId)}
         />
       )}
 
@@ -169,6 +184,7 @@ export function BusinessesPage() {
         open={panel?.type === 'view' || panel?.type === 'edit'}
         businessId={panel?.id}
         mode={panel?.type === 'edit' ? 'edit' : 'view'}
+        focusContactId={navFocusContactId}
         onClose={closePanel}
         onEdit={() => setPanel((p) => (p ? { ...p, type: 'edit' } : p))}
         onCancelEdit={() =>

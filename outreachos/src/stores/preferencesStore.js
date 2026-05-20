@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { DEFAULT_OUTREACH_TIMING } from '../constants/outreachTiming';
+import { mergeOutreachTiming } from '../lib/outreachTiming';
 
 const STORAGE_KEY = 'outreachos_preferences';
 
@@ -7,19 +9,51 @@ const DEFAULT_PREFS = {
   autoStart: false,
   /** serviceId -> template category names (#13) */
   serviceTemplateCategories: {},
+  outreachTiming: { ...DEFAULT_OUTREACH_TIMING },
 };
 
 function readPrefs() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? { ...DEFAULT_PREFS, ...JSON.parse(raw) } : { ...DEFAULT_PREFS };
+    if (!raw) return { ...DEFAULT_PREFS };
+    const parsed = JSON.parse(raw);
+    return {
+      ...DEFAULT_PREFS,
+      ...parsed,
+      outreachTiming: mergeOutreachTiming(parsed.outreachTiming),
+      serviceTemplateCategories: parsed.serviceTemplateCategories ?? {},
+    };
   } catch {
     return { ...DEFAULT_PREFS };
   }
 }
 
 function writePrefs(prefs) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
+  const payload = { ...prefs, updatedAt: Date.now() };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+}
+
+let storageSyncAttached = false;
+
+function attachStorageSync(set) {
+  if (storageSyncAttached || typeof window === 'undefined') return;
+  storageSyncAttached = true;
+
+  const sync = () => {
+    const prefs = readPrefs();
+    applyTheme(prefs.theme);
+    set({
+      theme: prefs.theme,
+      autoStart: prefs.autoStart,
+      outreachTiming: prefs.outreachTiming,
+      serviceTemplateCategories: prefs.serviceTemplateCategories,
+    });
+  };
+
+  window.addEventListener('storage', (e) => {
+    if (e.key === STORAGE_KEY) sync();
+  });
+  window.addEventListener('focus', sync);
 }
 
 function applyTheme(theme) {
@@ -29,9 +63,22 @@ function applyTheme(theme) {
 export const usePreferencesStore = create((set, get) => ({
   ...readPrefs(),
   initialized: false,
+  timingSaveMessage: null,
   autoStartAvailable: typeof window !== 'undefined' && !!window.electronAPI?.autoLaunch,
 
+  syncFromStorage: () => {
+    const prefs = readPrefs();
+    applyTheme(prefs.theme);
+    set({
+      theme: prefs.theme,
+      autoStart: prefs.autoStart,
+      outreachTiming: prefs.outreachTiming,
+      serviceTemplateCategories: prefs.serviceTemplateCategories,
+    });
+  },
+
   initialize: async () => {
+    attachStorageSync(set);
     const prefs = readPrefs();
     applyTheme(prefs.theme);
 
@@ -70,6 +117,36 @@ export const usePreferencesStore = create((set, get) => ({
     const next = { ...readPrefs(), serviceTemplateCategories };
     writePrefs(next);
     set({ serviceTemplateCategories });
+  },
+
+  getOutreachTiming: () => mergeOutreachTiming(get().outreachTiming),
+
+  setOutreachTiming: (partial) => {
+    const outreachTiming = mergeOutreachTiming({
+      ...readPrefs().outreachTiming,
+      ...partial,
+    });
+    const next = { ...readPrefs(), outreachTiming };
+    writePrefs(next);
+    set({ outreachTiming });
+  },
+
+  setOutreachTimingField: (key, value) => {
+    const num = Math.max(0, Math.min(30, Number(value) || 0));
+    get().setOutreachTiming({ [key]: num });
+  },
+
+  /** Save full timing object — use from Settings Save button for reliable cross-tab sync */
+  saveOutreachTiming: (outreachTiming) => {
+    const merged = mergeOutreachTiming(outreachTiming);
+    const next = { ...readPrefs(), outreachTiming: merged };
+    writePrefs(next);
+    set({ outreachTiming: merged, timingSaveMessage: 'saved' });
+    setTimeout(() => {
+      if (get().timingSaveMessage === 'saved') {
+        set({ timingSaveMessage: null });
+      }
+    }, 3000);
   },
 
   setServiceCategories: (serviceId, categories) => {
