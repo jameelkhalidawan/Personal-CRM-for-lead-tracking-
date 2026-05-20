@@ -6,6 +6,7 @@ import {
   fetchBusinessDetail,
   fetchServices,
   updateBusiness,
+  patchBusinessStatus,
 } from '../lib/businessApi';
 import { getSupabase } from '../lib/supabase';
 
@@ -229,6 +230,22 @@ export const useBusinessStore = create((set, get) => ({
       return { ok: true };
     } catch (err) {
       set({ saving: false, error: err.message });
+      return { ok: false };
+    }
+  },
+
+  patchBusinessStatus: async (id, status) => {
+    const prev = get().businesses;
+    set({
+      businesses: prev.map((b) => (b.id === id ? { ...b, status } : b)),
+      error: null,
+    });
+    try {
+      await patchBusinessStatus(id, status);
+      return { ok: true };
+    } catch (err) {
+      set({ businesses: prev, error: err.message });
+      await get().loadBusinesses();
       return { ok: false };
     }
   },

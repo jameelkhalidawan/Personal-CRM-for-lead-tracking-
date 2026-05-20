@@ -54,6 +54,23 @@ export function mapDecisionMakerRow(row) {
   };
 }
 
+export async function fetchDecisionMakersForBusinesses(businessIds) {
+  if (!businessIds?.length) return {};
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from('decision_makers')
+    .select('*')
+    .in('business_id', businessIds);
+
+  if (error) throw error;
+  const map = {};
+  for (const dm of data ?? []) {
+    if (!map[dm.business_id]) map[dm.business_id] = [];
+    map[dm.business_id].push(dm);
+  }
+  return map;
+}
+
 export async function fetchDecisionMakersByBusiness(businessId) {
   const supabase = getSupabase();
   const { data, error } = await supabase

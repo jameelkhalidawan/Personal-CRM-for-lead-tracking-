@@ -166,6 +166,19 @@ export async function updateBusiness(id, form) {
   return mapBusinessRow(refreshed.data);
 }
 
+export async function patchBusinessStatus(id, status) {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from('businesses')
+    .update({ status })
+    .eq('id', id)
+    .select(BUSINESS_SELECT)
+    .single();
+
+  if (error) throw error;
+  return mapBusinessRow(data);
+}
+
 export async function deleteBusiness(id) {
   const supabase = getSupabase();
   const { error } = await supabase.from('businesses').delete().eq('id', id);

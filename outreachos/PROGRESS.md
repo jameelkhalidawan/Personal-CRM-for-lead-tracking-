@@ -5,7 +5,7 @@
 > **Setup + test checklists per phase:** [docs/README.md](./docs/README.md)
 
 **Last updated:** 2026-05-19  
-**Current phase:** 7 complete → waiting for **GO** on Phase 8  
+**Current phase:** 8 complete → waiting for **GO** on Phase 9  
 **App version:** 0.1.0
 
 ---
@@ -21,29 +21,29 @@
 | 5 | Businesses | [PHASE5_BUSINESSES.md](./docs/PHASE5_BUSINESSES.md) | ✅ |
 | 6 | Decision makers | [PHASE6_DECISION_MAKERS.md](./docs/PHASE6_DECISION_MAKERS.md) | ✅ |
 | 7 | Activities | [PHASE7_ACTIVITIES.md](./docs/PHASE7_ACTIVITIES.md) | ✅ |
-| 8 | Dashboard Kanban | [PHASE8_DASHBOARD.md](./docs/PHASE8_DASHBOARD.md) | ⬜ |
+| 8 | Dashboard Kanban | [PHASE8_DASHBOARD.md](./docs/PHASE8_DASHBOARD.md) | ✅ |
 | 9 | Reminders | [PHASE9_REMINDERS.md](./docs/PHASE9_REMINDERS.md) | ⬜ |
 | 10 | Templates + settings | [PHASE10_SETTINGS.md](./docs/PHASE10_SETTINGS.md) | ⬜ |
 | 11 | Distribution | [PHASE11_DISTRIBUTION.md](./docs/PHASE11_DISTRIBUTION.md) | ⬜ |
 
 ---
 
-## What to test right now (Phase 7)
+## What to test right now (Phase 8)
 
-→ [docs/PHASE7_ACTIVITIES.md](./docs/PHASE7_ACTIVITIES.md) — full checklist
+→ [docs/PHASE8_DASHBOARD.md](./docs/PHASE8_DASHBOARD.md) — full checklist
 
 Minimum smoke test:
 
-- [ ] Business detail → **Log activity** → appears in timeline
-- [ ] **Last contacted** updates on the business
-- [ ] **Activities** page lists all logs + search/filter
-- [ ] Edit and delete an activity
+- [ ] Dashboard stats load
+- [ ] Drag a lead to another Kanban column → status saves
+- [ ] **Add lead** from dashboard works
+- [ ] Follow-up card opens business panel
 
 ---
 
-## Phase 8 — Next
+## Phase 9 — Next
 
-Dashboard + Kanban pipeline. Reply **GO** to start.
+Desktop reminders for due follow-ups. Reply **GO** to start.
 
 ---
 
@@ -52,7 +52,7 @@ Dashboard + Kanban pipeline. Reply **GO** to start.
 ```
 === OUTREACHOS CONTEXT SNAPSHOT ===
 Read: outreachos/PHASES.md + outreachos/PROGRESS.md + docs/README.md
-Current phase completed: 7
-Next phase: 8 — Dashboard Kanban
+Current phase completed: 8
+Next phase: 9 — Reminders
 ===================================
 ```

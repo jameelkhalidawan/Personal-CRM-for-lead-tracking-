@@ -1,19 +1,44 @@
-import { useEffect, useState } from 'react';
-import { CheckCircle2, XCircle } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Plus } from 'lucide-react';
 import { PageHeader } from '../components/layout/PageHeader';
-import { Card, CardBody } from '../components/ui/Card';
-import { LoadingSpinner } from '../components/ui/LoadingSpinner';
+import { BusinessCreatePanel } from '../components/businesses/BusinessDetailPanel';
+import { FollowUpCards } from '../components/dashboard/FollowUpCards';
+import { PipelineKanban } from '../components/dashboard/PipelineKanban';
+import { StatsBar } from '../components/dashboard/StatsBar';
+import { Button } from '../components/ui/Button';
 import { useAuthStore } from '../stores/authStore';
-import { verifyDatabaseSchema } from '../lib/dbCheck';
+import { useBusinessStore } from '../stores/businessStore';
+import { useActivityStore } from '../stores/activityStore';
+import { fetchDecisionMakersForBusinesses } from '../lib/decisionMakerApi';
+import {
+  computeDashboardStats,
+  getFollowUpBuckets,
+} from '../lib/dashboardStats';
+import {
+  enrichFollowUpList,
+  groupActivitiesByBusiness,
+} from '../lib/followUpInsight';
 
 export function DashboardPage() {
+  const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
-  const [dbStatus, setDbStatus] = useState({
-    loading: true,
-    ok: null,
-    message: '',
-    results: [],
-  });
+  const {
+    businesses,
+    loading,
+    error,
+    loadBusinesses,
+    loadServices,
+    subscribeRealtime,
+    unsubscribeRealtime,
+    patchBusinessStatus,
+    clearError,
+  } = useBusinessStore();
+  const { items: activities, loadAll: loadActivities } = useActivityStore();
+
+  const [createOpen, setCreateOpen] = useState(false);
+  const [dmsByBusiness, setDmsByBusiness] = useState({});
+  const [loadingContext, setLoadingContext] = useState(false);
 
   const displayName =
     user?.user_metadata?.full_name ||
@@ -22,74 +47,126 @@ export function DashboardPage() {
     'User';
 
   useEffect(() => {
+    loadServices();
+    loadBusinesses();
+    loadActivities();
+    subscribeRealtime();
+    return () => unsubscribeRealtime();
+  }, [
+    loadServices,
+    loadBusinesses,
+    loadActivities,
+    subscribeRealtime,
+    unsubscribeRealtime,
+  ]);
+
+  const stats = useMemo(() => computeDashboardStats(businesses), [businesses]);
+  const rawFollowUps = useMemo(() => getFollowUpBuckets(businesses), [businesses]);
+  const activitiesByBusiness = useMemo(
+    () => groupActivitiesByBusiness(activities),
+    [activities],
+  );
+
+  const followUpBusinessIds = useMemo(() => {
+    const ids = [
+      ...rawFollowUps.overdue,
+      ...rawFollowUps.dueToday,
+      ...rawFollowUps.upcoming,
+    ].map((b) => b.id);
+    return [...new Set(ids)];
+  }, [rawFollowUps]);
+
+  useEffect(() => {
+    if (!followUpBusinessIds.length) {
+      setDmsByBusiness({});
+      return;
+    }
     let cancelled = false;
-    verifyDatabaseSchema().then((result) => {
-      if (!cancelled) {
-        setDbStatus({
-          loading: false,
-          ok: result.ok,
-          message: result.message,
-          results: result.results,
-        });
-      }
-    });
+    setLoadingContext(true);
+    fetchDecisionMakersForBusinesses(followUpBusinessIds)
+      .then((map) => {
+        if (!cancelled) setDmsByBusiness(map);
+      })
+      .catch(() => {
+        if (!cancelled) setDmsByBusiness({});
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingContext(false);
+      });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [followUpBusinessIds.join(',')]);
+
+  const followUps = useMemo(
+    () => ({
+      overdue: enrichFollowUpList(
+        rawFollowUps.overdue,
+        activitiesByBusiness,
+        dmsByBusiness,
+      ),
+      dueToday: enrichFollowUpList(
+        rawFollowUps.dueToday,
+        activitiesByBusiness,
+        dmsByBusiness,
+      ),
+      upcoming: enrichFollowUpList(
+        rawFollowUps.upcoming,
+        activitiesByBusiness,
+        dmsByBusiness,
+      ),
+    }),
+    [rawFollowUps, activitiesByBusiness, dmsByBusiness],
+  );
+
+  const openBusiness = (id) => {
+    navigate('/businesses', { state: { openBusinessId: id } });
+  };
+
+  const handleStatusChange = async (id, status) => {
+    await patchBusinessStatus(id, status);
+  };
 
   return (
-  <>
+    <>
       <PageHeader
         title={`Hello, ${displayName}`}
-        description="Your command center — pipeline and follow-ups arrive in Phase 8."
+        description="Pipeline overview, follow-ups, and quick actions."
+        actions={
+          <Button onClick={() => setCreateOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Add lead
+          </Button>
+        }
       />
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardBody>
-            <p className="text-label uppercase text-text-muted mb-2">Account</p>
-            <p className="text-text-secondary text-body">
-              Signed in as{' '}
-              <span className="text-text-primary">{user?.email}</span>
-            </p>
-          </CardBody>
-        </Card>
+      {error && (
+        <div className="mb-4 rounded-lg border border-priority-high/40 bg-priority-high/10 px-4 py-3 text-small text-priority-high flex justify-between gap-4">
+          <span>{error}</span>
+          <button type="button" onClick={clearError} className="underline">
+            Dismiss
+          </button>
+        </div>
+      )}
 
-        <Card>
-          <CardBody>
-            <p className="text-label uppercase text-text-muted mb-3">Database</p>
-            {dbStatus.loading ? (
-              <div className="flex items-center gap-2 text-text-secondary text-small">
-                <LoadingSpinner size="sm" />
-                Checking tables…
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <div className="flex items-start gap-2">
-                  {dbStatus.ok ? (
-                    <CheckCircle2 className="h-5 w-5 text-status-interested shrink-0" />
-                  ) : (
-                    <XCircle className="h-5 w-5 text-priority-high shrink-0" />
-                  )}
-                  <p
-                    className={`text-small ${dbStatus.ok ? 'text-status-interested' : 'text-priority-high'}`}
-                  >
-                    {dbStatus.message}
-                  </p>
-                </div>
-                <ul className="text-small text-text-muted space-y-1 pl-7">
-                  {dbStatus.results.map((row) => (
-                    <li key={row.table}>
-                      {row.table}: {row.count ?? 0} rows
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </CardBody>
-        </Card>
-      </div>
+      <StatsBar stats={stats} loading={loading} />
+      <FollowUpCards
+        buckets={followUps}
+        onOpenBusiness={openBusiness}
+        loadingContext={loadingContext}
+      />
+      <PipelineKanban
+        businesses={businesses}
+        loading={loading}
+        onStatusChange={handleStatusChange}
+        onOpenBusiness={openBusiness}
+      />
+
+      <BusinessCreatePanel
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={() => setCreateOpen(false)}
+      />
     </>
   );
 }
