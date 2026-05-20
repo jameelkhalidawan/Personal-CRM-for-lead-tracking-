@@ -3,7 +3,7 @@ import { cn } from '../../lib/cn';
 const fieldClass =
   'w-full rounded-lg border border-border bg-background-elevated px-3 py-2.5 text-body text-text-primary placeholder:text-text-muted outline-none transition-colors focus:border-accent-primary focus:ring-1 focus:ring-accent-primary';
 
-export function Input({ label, id, required, className, ...props }) {
+export function Input({ label, id, required, className, inputRef, ...props }) {
   const inputId = id || props.name;
   return (
     <div className={cn('space-y-1.5', className)}>
@@ -13,12 +13,18 @@ export function Input({ label, id, required, className, ...props }) {
           {required && <span className="text-priority-high ml-0.5">*</span>}
         </label>
       )}
-      <input id={inputId} required={required} className={fieldClass} {...props} />
+      <input
+        ref={inputRef}
+        id={inputId}
+        required={required}
+        className={fieldClass}
+        {...props}
+      />
     </div>
   );
 }
 
-export function Textarea({ label, id, required, className, rows = 4, ...props }) {
+export function Textarea({ label, id, required, className, rows = 4, textareaRef, ...props }) {
   const inputId = id || props.name;
   return (
     <div className={cn('space-y-1.5', className)}>
@@ -29,6 +35,7 @@ export function Textarea({ label, id, required, className, rows = 4, ...props })
         </label>
       )}
       <textarea
+        ref={textareaRef}
         id={inputId}
         rows={rows}
         required={required}

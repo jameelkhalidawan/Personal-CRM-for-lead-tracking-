@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useAuthStore } from './stores/authStore';
+import { usePreferencesStore } from './stores/preferencesStore';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { AppRouter } from './routes/AppRouter';
@@ -9,9 +10,12 @@ function App() {
   const { initialize, initialized, loading, session, authView, error } =
     useAuthStore();
 
+  const initializePrefs = usePreferencesStore((s) => s.initialize);
+
   useEffect(() => {
     initialize();
-  }, [initialize]);
+    initializePrefs();
+  }, [initialize, initializePrefs]);
 
   if (!initialized || (loading && !session)) {
     return (

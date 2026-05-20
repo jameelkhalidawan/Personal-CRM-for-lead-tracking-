@@ -1,6 +1,7 @@
 import { OUTCOME_ACTIVITY_TYPES } from '../constants/activity';
 import { getSupabase } from './supabase';
 import { fromDatetimeLocalValue, toDatetimeLocalValue } from './format';
+import { formatEmailForNotes, isEmailActivityType } from './templateRender';
 
 const STATUS_FROM_OUTCOME = {
   interested: 'interested',
@@ -37,13 +38,20 @@ export function mapActivityRow(row) {
   };
 }
 
+function resolveActivityNotes(form) {
+  if (isEmailActivityType(form.type) && (form.email_subject || form.email_body)) {
+    return formatEmailForNotes(form.email_subject, form.email_body) || null;
+  }
+  return form.notes?.trim() || null;
+}
+
 function buildPayload(form, businessId, performedBy) {
   return {
     business_id: businessId,
     decision_maker_id: form.decision_maker_id || null,
     performed_by: performedBy ?? null,
     type: form.type,
-    notes: form.notes?.trim() || null,
+    notes: resolveActivityNotes(form),
     followup_at: fromDatetimeLocalValue(form.followup_at),
   };
 }

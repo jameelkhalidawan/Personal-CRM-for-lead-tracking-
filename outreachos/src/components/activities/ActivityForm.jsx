@@ -1,24 +1,31 @@
 import {
+  EMAIL_ACTIVITY_TYPES,
   OTHER_ACTIVITY_TYPES,
   OUTCOME_ACTIVITY_TYPES_LIST,
   PLAYBOOK_ACTIVITY_TYPES,
 } from '../../constants/activity';
+import { isEmailActivityType } from '../../lib/templateRender';
 import { Input, Select, Textarea } from '../ui/Input';
 import { Button } from '../ui/Button';
+import { EmailOutreachSection } from './EmailOutreachSection';
 
 export function ActivityForm({
   form,
   onChange,
+  onPatch,
   onSubmit,
   onCancel,
   saving,
   decisionMakers = [],
+  business,
+  user,
   submitLabel = 'Log activity',
   stageLabel,
   isOutcome,
   outcomeHint,
 }) {
   const set = (field, value) => onChange({ ...form, [field]: value });
+  const showEmailTemplates = !isOutcome && isEmailActivityType(form.type);
 
   return (
     <form
@@ -46,7 +53,16 @@ export function ActivityForm({
         label="Activity type"
         required
         value={form.type}
-        onChange={(e) => set('type', e.target.value)}
+        onChange={(e) => {
+          const type = e.target.value;
+          const next = { ...form, type };
+          if (!EMAIL_ACTIVITY_TYPES.includes(type)) {
+            next.email_subject = '';
+            next.email_body = '';
+            next.template_id = '';
+          }
+          onChange(next);
+        }}
       >
         <optgroup label="Outreach sequence">
           {PLAYBOOK_ACTIVITY_TYPES.map((t) => (
@@ -74,7 +90,7 @@ export function ActivityForm({
 
       {decisionMakers.length > 0 && (
         <Select
-          label="Contact (optional)"
+          label={showEmailTemplates ? 'Contact' : 'Contact (optional)'}
           value={form.decision_maker_id}
           onChange={(e) => set('decision_maker_id', e.target.value)}
         >
@@ -88,6 +104,16 @@ export function ActivityForm({
         </Select>
       )}
 
+      {showEmailTemplates && (
+        <EmailOutreachSection
+          form={form}
+          onPatch={onPatch}
+          business={business}
+          decisionMakers={decisionMakers}
+          user={user}
+        />
+      )}
+
       <Textarea
         label={isOutcome ? 'Notes (what happened?)' : 'Notes'}
         value={form.notes}
@@ -96,7 +122,9 @@ export function ActivityForm({
         placeholder={
           isOutcome
             ? 'e.g. They replied on LinkedIn, meeting Tuesday 2pm, sent $5k proposal…'
-            : 'What happened? Outcomes, objections, next steps…'
+            : showEmailTemplates
+              ? 'Filled automatically when you pick a template — edit if needed'
+              : 'What happened? Outcomes, objections, next steps…'
         }
       />
 

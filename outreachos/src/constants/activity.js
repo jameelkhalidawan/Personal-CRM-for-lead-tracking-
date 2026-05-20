@@ -56,9 +56,14 @@ export const OUTCOME_QUICK_ACTIONS = [
   },
 ];
 
+export const EMAIL_ACTIVITY_TYPES = ['cold_email', 'followup_email'];
+
 export const EMPTY_ACTIVITY_FORM = {
   type: 'call',
   decision_maker_id: '',
   notes: '',
   followup_at: '',
+  email_subject: '',
+  email_body: '',
+  template_id: '',
 };

@@ -15,6 +15,10 @@ declare global {
         get: () => Promise<{ hasEverLoggedIn: boolean }>;
         set: (flags: { hasEverLoggedIn: boolean }) => Promise<boolean>;
       };
+      autoLaunch?: {
+        isEnabled: () => Promise<boolean>;
+        setEnabled: (enabled: boolean) => Promise<boolean>;
+      };
       reminders?: {
         notify: (payload: {
           title: string;

@@ -5,13 +5,13 @@ export default {
     extend: {
       colors: {
         background: {
-          primary: '#0A0A0F',
-          card: '#111118',
-          elevated: '#1A1A24',
+          primary: 'var(--color-bg-primary)',
+          card: 'var(--color-bg-card)',
+          elevated: 'var(--color-bg-elevated)',
         },
         border: {
-          DEFAULT: '#2A2A38',
-          hover: '#3A3A50',
+          DEFAULT: 'var(--color-border)',
+          hover: 'var(--color-border-hover)',
         },
         accent: {
           primary: '#6C63FF',
@@ -19,9 +19,9 @@ export default {
           secondary: '#22D3EE',
         },
         text: {
-          primary: '#F1F0FF',
-          secondary: '#9B9AAF',
-          muted: '#5A5970',
+          primary: 'var(--color-text-primary)',
+          secondary: 'var(--color-text-secondary)',
+          muted: 'var(--color-text-muted)',
         },
         status: {
           new: '#6C63FF',

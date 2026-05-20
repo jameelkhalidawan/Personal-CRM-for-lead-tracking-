@@ -302,6 +302,7 @@ export function BusinessDetailPanel({
         mode={activityPanel?.mode ?? 'view'}
         businessId={business?.id}
         businessName={business?.business_name}
+        business={business}
         activity={activityPanel?.activity}
         preset={activityPanel?.preset}
         decisionMakers={detail?.decisionMakers ?? []}

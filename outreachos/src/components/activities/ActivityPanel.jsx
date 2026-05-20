@@ -4,6 +4,7 @@ import { EMPTY_ACTIVITY_FORM } from '../../constants/activity';
 import { activityToForm } from '../../lib/activityApi';
 import { formatDateTime } from '../../lib/format';
 import { useActivityStore } from '../../stores/activityStore';
+import { useAuthStore } from '../../stores/authStore';
 import { SlidePanel } from '../ui/SlidePanel';
 import { Button } from '../ui/Button';
 import { ActivityForm } from './ActivityForm';
@@ -24,6 +25,7 @@ export function ActivityPanel({
   mode,
   businessId,
   businessName,
+  business,
   activity,
   decisionMakers = [],
   onClose,
@@ -33,6 +35,7 @@ export function ActivityPanel({
   preset,
 }) {
   const { saving, create, update } = useActivityStore();
+  const user = useAuthStore((s) => s.user);
   const [form, setForm] = useState({ ...EMPTY_ACTIVITY_FORM });
   const [stageLabel, setStageLabel] = useState(null);
   const [dirty, setDirty] = useState(false);
@@ -106,10 +109,20 @@ export function ActivityPanel({
             setForm(f);
             setDirty(true);
           }}
+          onPatch={
+            isCreate || isEdit
+              ? (patch) => {
+                  setForm((f) => ({ ...f, ...patch }));
+                  setDirty(true);
+                }
+              : undefined
+          }
           onSubmit={handleSave}
           onCancel={handleClose}
           saving={saving}
           decisionMakers={decisionMakers}
+          business={business}
+          user={user}
           submitLabel={isCreate ? 'Log activity' : 'Save changes'}
           stageLabel={stageLabel}
           isOutcome={preset?.isOutcome}

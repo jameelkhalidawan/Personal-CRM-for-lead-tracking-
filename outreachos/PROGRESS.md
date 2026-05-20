@@ -5,7 +5,7 @@
 > **Setup + test checklists per phase:** [docs/README.md](./docs/README.md)
 
 **Last updated:** 2026-05-19  
-**Current phase:** 9 complete → waiting for **GO** on Phase 10  
+**Current phase:** 10 complete → waiting for **GO** on Phase 11  
 **App version:** 0.1.0
 
 ---
@@ -23,27 +23,27 @@
 | 7 | Activities | [PHASE7_ACTIVITIES.md](./docs/PHASE7_ACTIVITIES.md) | ✅ |
 | 8 | Dashboard Kanban | [PHASE8_DASHBOARD.md](./docs/PHASE8_DASHBOARD.md) | ✅ |
 | 9 | Reminders | [PHASE9_REMINDERS.md](./docs/PHASE9_REMINDERS.md) | ✅ |
-| 10 | Templates + settings | [PHASE10_SETTINGS.md](./docs/PHASE10_SETTINGS.md) | ⬜ |
+| 10 | Templates + settings | [PHASE10_SETTINGS.md](./docs/PHASE10_SETTINGS.md) | ✅ |
 | 11 | Distribution | [PHASE11_DISTRIBUTION.md](./docs/PHASE11_DISTRIBUTION.md) | ⬜ |
 
 ---
 
-## What to test right now (Phase 9)
+## What to test right now (Phase 10)
 
-→ [docs/PHASE9_REMINDERS.md](./docs/PHASE9_REMINDERS.md) — full checklist
+→ [docs/PHASE10_SETTINGS.md](./docs/PHASE10_SETTINGS.md) — full checklist
 
 Minimum smoke test:
 
-- [ ] Settings → **Test notification** works (Electron)
-- [ ] **Check now** fires for a due/overdue business
-- [ ] Click notification → business panel opens
-- [ ] Save reminder settings persist
+- [ ] Email Templates CRUD works
+- [ ] Light/dark theme toggles and persists
+- [ ] Auto-start toggle (Electron)
+- [ ] Settings page has account + reminders + appearance
 
 ---
 
-## Phase 10 — Next
+## Phase 11 — Next
 
-Email templates, full settings (appearance, auto-start). Reply **GO** to start.
+Windows installer + distribution docs. Reply **GO** to start.
 
 ---
 
@@ -52,7 +52,7 @@ Email templates, full settings (appearance, auto-start). Reply **GO** to start.
 ```
 === OUTREACHOS CONTEXT SNAPSHOT ===
 Read: outreachos/PHASES.md + outreachos/PROGRESS.md + docs/README.md
-Current phase completed: 9
-Next phase: 10 — Templates + settings
+Current phase completed: 10
+Next phase: 11 — Distribution
 ===================================
 ```
