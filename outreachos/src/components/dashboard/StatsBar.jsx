@@ -43,10 +43,10 @@ export function StatsBar({ metrics, loading }) {
         sub="Contacts in your pipeline"
       />
       <StatCard
-        label="Active deals"
-        value={m.activeDeals ?? 0}
-        sub="Closed as win"
-        accent={(m.activeDeals ?? 0) > 0}
+        label="Won deals"
+        value={m.wonDeals ?? m.activeDeals ?? 0}
+        sub="Contacts closed as win"
+        accent={(m.wonDeals ?? m.activeDeals ?? 0) > 0}
       />
       <StatCard
         label="Call close rate"

@@ -4,6 +4,7 @@ import {
   filterActivitiesForContact,
   getOutreachContactsForBusiness,
 } from './leadModel';
+import { getActivityChannel } from './outreachChannel';
 
 const OUTREACH_TYPES = new Set(['cold_email', 'followup_email', 'call']);
 const REPLY_TYPES = new Set(['interested']);
@@ -253,14 +254,14 @@ export function computeSummaryMetrics(businesses, leads) {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  let activeDeals = 0;
+  let activePipeline = 0;
   let monthlyCloses = 0;
   let revenue = 0;
   let pipelineValue = 0;
 
   for (const b of businesses ?? []) {
     pipelineValue += Number(b.estimated_value) || 0;
-    if (!TERMINAL.has(b.status)) activeDeals += 1;
+    if (!TERMINAL.has(b.status)) activePipeline += 1;
     if (b.status === 'closed_won') {
       revenue += Number(b.estimated_value) || 0;
     }
@@ -283,7 +284,8 @@ export function computeSummaryMetrics(businesses, leads) {
 
   return {
     totalLeads: leads.length,
-    activeDeals,
+    activePipeline,
+    activeDeals: activePipeline,
     monthlyCloses,
     revenue,
     pipelineValue,
@@ -466,6 +468,37 @@ export function computeTopNiches(niches) {
   };
 }
 
+/** Call vs email outreach and closes using logged channel */
+export function computeChannelBreakdown(activities = []) {
+  let callOutreach = 0;
+  let emailOutreach = 0;
+  let callClosed = 0;
+  let emailClosed = 0;
+
+  for (const a of activities ?? []) {
+    const ch = getActivityChannel(a);
+    if (OUTREACH_TYPES.has(a.type) || ch) {
+      if (ch === 'phone') callOutreach += 1;
+      else if (ch === 'email') emailOutreach += 1;
+    }
+    if (CLOSED_TYPES.has(a.type)) {
+      if (ch === 'phone') callClosed += 1;
+      else if (ch === 'email') emailClosed += 1;
+    }
+  }
+
+  return {
+    callOutreach,
+    emailOutreach,
+    callClosed,
+    emailClosed,
+    callCloseRate: callOutreach ? pct(callClosed, callOutreach) : null,
+    callCloseRateLabel: callOutreach ? `${pct(callClosed, callOutreach)}%` : '—',
+    emailCloseRate: emailOutreach ? pct(emailClosed, emailOutreach) : null,
+    emailCloseRateLabel: emailOutreach ? `${pct(emailClosed, emailOutreach)}%` : '—',
+  };
+}
+
 export function computeFullAnalyticsReport(businesses, dmsByBusiness, activities) {
   const leads = buildContactLeads(businesses, dmsByBusiness, activities);
   const funnel = computeCoreFunnel(leads);
@@ -483,5 +516,6 @@ export function computeFullAnalyticsReport(businesses, dmsByBusiness, activities
     activityBreakdown: computeActivityBreakdown(activities),
     contactWorkload: computeContactWorkload(leads),
     pipelineSnapshot: computePipelineSnapshot(businesses),
+    channelBreakdown: computeChannelBreakdown(activities),
   };
 }

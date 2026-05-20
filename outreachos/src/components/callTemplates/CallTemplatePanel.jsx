@@ -3,6 +3,7 @@ import { Copy, Pencil, Trash2 } from 'lucide-react';
 import { createEmptyCallTemplateForm } from '../../constants/callTemplate';
 import { templateToForm } from '../../lib/callTemplateApi';
 import { useCallTemplateStore } from '../../stores/callTemplateStore';
+import { MigrationHint } from '../ui/MigrationHint';
 import { SlidePanel } from '../ui/SlidePanel';
 import { Button } from '../ui/Button';
 import { CallTemplateForm } from './CallTemplateForm';
@@ -76,7 +77,8 @@ export function CallTemplatePanel({
         <>
           {(validationError || error) && (
             <div className="mb-4 rounded-lg border border-priority-high/40 bg-priority-high/10 px-3 py-2 text-small text-priority-high">
-              {validationError || error}
+              <span>{validationError || error}</span>
+              <MigrationHint error={error} />
             </div>
           )}
           <CallTemplateForm

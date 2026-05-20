@@ -54,7 +54,7 @@ export function computeDashboardMetrics(businesses = [], dmsByBusiness = {}, act
     activitiesByBusiness[bid].push(a);
   }
 
-  let activeDeals = 0;
+  let wonDeals = 0;
   let phoneOutreachLeads = 0;
   let phoneClosedLeads = 0;
   let emailOutreachLeads = 0;
@@ -75,7 +75,7 @@ export function computeDashboardMetrics(businesses = [], dmsByBusiness = {}, act
       if (business.status === 'closed_won') wonBusinessIds.add(business.id);
     }
 
-    if (won) activeDeals += 1;
+    if (won) wonDeals += 1;
 
     const hadPhone = contactHadPhoneOutreach(contactActs);
     const hadEmail = contactHadEmailOutreach(contactActs);
@@ -100,18 +100,18 @@ export function computeDashboardMetrics(businesses = [], dmsByBusiness = {}, act
 
   return {
     totalLeads,
-    activeDeals,
+    wonDeals,
     callCloseRate: pct(phoneClosedLeads, phoneOutreachLeads),
     callCloseRateLabel: formatRate(pct(phoneClosedLeads, phoneOutreachLeads)),
     callCloseSub:
       phoneOutreachLeads > 0
-        ? `${phoneClosedLeads} won of ${phoneOutreachLeads} with calls`
+        ? `${phoneClosedLeads} won of ${phoneOutreachLeads} with calls · uses logged channel`
         : 'No call outreach yet',
     emailCloseRate: pct(emailClosedLeads, emailOutreachLeads),
     emailCloseRateLabel: formatRate(pct(emailClosedLeads, emailOutreachLeads)),
     emailCloseSub:
       emailOutreachLeads > 0
-        ? `${emailClosedLeads} won of ${emailOutreachLeads} with email`
+        ? `${emailClosedLeads} won of ${emailOutreachLeads} with email · uses logged channel`
         : 'No email outreach yet',
     conversionRate: pct(closedWonLeads, totalLeads),
     conversionRateLabel: formatRate(pct(closedWonLeads, totalLeads)),

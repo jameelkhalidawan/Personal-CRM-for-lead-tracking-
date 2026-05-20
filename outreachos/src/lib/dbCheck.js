@@ -1,15 +1,17 @@
 import { getSupabase } from './supabase';
 
 /**
- * Verifies Phase 3 tables exist and seeds are present (authenticated request).
+ * Verifies core tables exist and optional migrations are applied.
  */
 export async function verifyDatabaseSchema() {
   const supabase = getSupabase();
 
   const tables = [
     { name: 'services', expectedMin: 4 },
-    { name: 'email_templates', expectedMin: 6 },
+    { name: 'email_templates', expectedMin: 0 },
+    { name: 'call_templates', expectedMin: 0 },
     { name: 'businesses', expectedMin: 0 },
+    { name: 'activities', expectedMin: 0 },
   ];
 
   const results = [];
@@ -43,6 +45,36 @@ export async function verifyDatabaseSchema() {
     });
   }
 
+  const { error: channelProbe } = await supabase
+    .from('activities')
+    .select('outreach_channel')
+    .limit(1);
+
+  if (channelProbe?.message?.includes('outreach_channel')) {
+    results.push({
+      table: 'activities.outreach_channel',
+      ok: false,
+      count: null,
+      message: channelProbe.message,
+      migration: 'supabase/migrations/20260520_outreach_channel.sql',
+    });
+  }
+
+  const { error: templateProbe } = await supabase
+    .from('activities')
+    .select('template_id, call_template_id')
+    .limit(1);
+
+  if (templateProbe?.message?.includes('template_id')) {
+    results.push({
+      table: 'activities.template_id',
+      ok: false,
+      count: null,
+      message: templateProbe.message,
+      migration: 'supabase/migrations/20260522_activity_templates.sql',
+    });
+  }
+
   const allOk = results.every((r) => r.ok);
 
   return {
@@ -50,6 +82,6 @@ export async function verifyDatabaseSchema() {
     results,
     message: allOk
       ? 'Database schema verified — tables reachable with your login.'
-      : 'Some tables are missing or seeds not loaded. Run supabase/schema.sql in Supabase SQL Editor.',
+      : 'Some tables or columns are missing. Run the migrations listed below in Supabase SQL Editor.',
   };
 }

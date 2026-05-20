@@ -14,6 +14,7 @@ import { ACTIVITY_TYPES } from '../constants/activity';
 import { useActivityStore } from '../stores/activityStore';
 import { useBusinessStore } from '../stores/businessStore';
 import { SuggestedLeadsBanner } from '../components/activities/SuggestedLeadsBanner';
+import { MigrationHint } from '../components/ui/MigrationHint';
 
 export function ActivitiesPage() {
   const navigate = useNavigate();
@@ -74,8 +75,11 @@ export function ActivitiesPage() {
 
       {error && (
         <div className="mb-4 rounded-lg border border-priority-high/40 bg-priority-high/10 px-4 py-3 text-small text-priority-high flex justify-between gap-4">
-          <span>{error}</span>
-          <button type="button" onClick={clearError} className="underline">
+          <div>
+            <span>{error}</span>
+            <MigrationHint error={error} />
+          </div>
+          <button type="button" onClick={clearError} className="underline shrink-0">
             Dismiss
           </button>
         </div>

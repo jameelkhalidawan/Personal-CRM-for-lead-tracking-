@@ -36,6 +36,7 @@ export function DashboardPage() {
 
   const [createOpen, setCreateOpen] = useState(false);
   const [dmsByBusiness, setDmsByBusiness] = useState({});
+  const [dmLoadError, setDmLoadError] = useState(null);
   const outreachTiming = useOutreachTiming();
 
   const displayName =
@@ -73,11 +74,18 @@ export function DashboardPage() {
   useEffect(() => {
     if (!allBusinessIds.length) {
       setDmsByBusiness({});
+      setDmLoadError(null);
       return;
     }
     fetchDecisionMakersForBusinesses(allBusinessIds)
-      .then(setDmsByBusiness)
-      .catch(() => setDmsByBusiness({}));
+      .then((data) => {
+        setDmsByBusiness(data);
+        setDmLoadError(null);
+      })
+      .catch((err) => {
+        setDmsByBusiness({});
+        setDmLoadError(err.message ?? 'Could not load contacts');
+      });
   }, [allBusinessIds.join(',')]);
 
   const insightsByContactKey = useMemo(
@@ -155,6 +163,12 @@ export function DashboardPage() {
           <button type="button" onClick={clearError} className="underline">
             Dismiss
           </button>
+        </div>
+      )}
+
+      {dmLoadError && (
+        <div className="mb-4 rounded-lg border border-priority-high/40 bg-priority-high/10 px-4 py-3 text-small text-priority-high">
+          Could not load contacts — metrics and follow-ups may be incomplete. {dmLoadError}
         </div>
       )}
 

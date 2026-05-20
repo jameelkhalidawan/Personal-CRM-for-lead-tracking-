@@ -17,7 +17,7 @@ export const NAV_ITEMS = [
   { to: '/businesses', label: 'Businesses', icon: Building2 },
   { to: '/decision-makers', label: 'Decision Makers', icon: Users },
   { to: '/activities', label: 'Activities', icon: Activity },
-  { to: '/email-templates', label: 'Email Templates', icon: Mail },
-  { to: '/call-templates', label: 'Call Scripts', icon: Phone },
+  { to: '/email-templates', label: 'Email scripts', icon: Mail },
+  { to: '/call-templates', label: 'Call scripts', icon: Phone },
   { to: '/settings', label: 'Settings', icon: Settings },
 ];

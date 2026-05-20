@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Copy, Phone } from 'lucide-react';
 import { CALL_OUTCOME_ACTIONS } from '../../constants/activity';
 import { useOutreachTiming } from '../../hooks/useOutreachTiming';
 import { addDaysDatetimeLocal } from '../../lib/outreachSequence';
 import { getCallOutcomeDays } from '../../lib/outreachTiming';
+import { shouldReplaceTemplateNotes } from '../../lib/templateAutoFill';
 import {
   buildTemplateContext,
   formatCallNotes,
@@ -29,6 +30,7 @@ export function CallOutreachSection({
   const timing = useOutreachTiming();
   const [templateId, setTemplateId] = useState(form.call_template_id ?? '');
   const [scriptId, setScriptId] = useState(form.call_script_id ?? '');
+  const lastAutoNotesRef = useRef('');
 
   const sortedTemplates = filterTemplatesByContext(
     templates,
@@ -78,25 +80,45 @@ export function CallOutreachSection({
     ? renderTemplate(selectedScript.body, context)
     : '';
 
-  const applyScriptToNotes = (tplId, scrId, scriptLabel, body) => {
+  const applyScriptToNotes = (tplId, scrId, scriptLabel, body, force = false) => {
+    const notes = formatCallNotes(scriptLabel, body);
+    if (
+      !force &&
+      !shouldReplaceTemplateNotes(form.notes, lastAutoNotesRef.current)
+    ) {
+      onPatch({
+        call_template_id: tplId ?? '',
+        call_script_id: scrId ?? '',
+        outreach_channel: 'phone',
+      });
+      return;
+    }
+    lastAutoNotesRef.current = notes.trim();
     onPatch({
       call_template_id: tplId ?? '',
       call_script_id: scrId ?? '',
       outreach_channel: 'phone',
-      notes: formatCallNotes(scriptLabel, body),
+      notes,
     });
   };
 
   useEffect(() => {
     if (!templateId || !selectedScript) return;
     const body = renderTemplate(selectedScript.body, context);
-    applyScriptToNotes(templateId, selectedScript.id, selectedScript.label, body);
+    applyScriptToNotes(
+      templateId,
+      selectedScript.id,
+      selectedScript.label,
+      body,
+      false,
+    );
   }, [form.decision_maker_id, business?.id, templateId, scriptId, context]);
 
   const handleSelectTemplate = (id) => {
     setTemplateId(id);
     if (!id) {
       setScriptId('');
+      lastAutoNotesRef.current = '';
       onPatch({ call_template_id: '', call_script_id: '' });
       return;
     }
@@ -105,7 +127,7 @@ export function CallOutreachSection({
     if (!first) return;
     setScriptId(first.id);
     const body = renderTemplate(first.body, context);
-    applyScriptToNotes(id, first.id, first.label, body);
+    applyScriptToNotes(id, first.id, first.label, body, true);
   };
 
   const handleSelectScript = (id) => {
@@ -113,7 +135,7 @@ export function CallOutreachSection({
     const script = scripts.find((s) => s.id === id);
     if (!script) return;
     const body = renderTemplate(script.body, context);
-    applyScriptToNotes(templateId, id, script.label, body);
+    applyScriptToNotes(templateId, id, script.label, body, true);
   };
 
   const applyCallOutcome = (action) => {
@@ -125,6 +147,7 @@ export function CallOutreachSection({
     const notes = scriptBlock
       ? `${scriptBlock}\n\nResult: ${action.notes}`
       : action.notes;
+    lastAutoNotesRef.current = notes.trim();
 
     onPatch({
       notes,

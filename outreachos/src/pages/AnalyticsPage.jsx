@@ -72,6 +72,7 @@ export function AnalyticsPage() {
     activityBreakdown,
     contactWorkload,
     pipelineSnapshot,
+    channelBreakdown,
   } = report;
 
   const maxFollowUpReplies = Math.max(...followUpTouches.map((r) => r.replies), 1);
@@ -111,8 +112,8 @@ export function AnalyticsPage() {
               />
               <SummaryMetric
                 index={1}
-                label="Active deals"
-                value={summary.activeDeals}
+                label="Active pipeline"
+                value={summary.activePipeline ?? summary.activeDeals}
                 sub="Open companies in pipeline"
               />
               <SummaryMetric
@@ -159,6 +160,27 @@ export function AnalyticsPage() {
                 value={closedCount}
                 total={summary.totalLeads || 1}
                 strokeColor="#facc15"
+              />
+            </div>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-h3 text-text-primary mb-1">Channel performance</h2>
+            <p className="text-small text-text-muted mb-4">
+              Close rates from logged call vs email activities (uses outreach channel when set).
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2 max-w-xl">
+              <SummaryMetric
+                index={0}
+                label="Call close rate"
+                value={channelBreakdown.callCloseRateLabel}
+                sub={`${channelBreakdown.callClosed} closes / ${channelBreakdown.callOutreach} call activities`}
+              />
+              <SummaryMetric
+                index={1}
+                label="Email close rate"
+                value={channelBreakdown.emailCloseRateLabel}
+                sub={`${channelBreakdown.emailClosed} closes / ${channelBreakdown.emailOutreach} email activities`}
               />
             </div>
           </section>

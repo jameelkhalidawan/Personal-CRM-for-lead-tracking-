@@ -10,6 +10,7 @@ import { SearchInput } from '../components/ui/SearchInput';
 import { Select } from '../components/ui/Input';
 import { TableSkeleton } from '../components/ui/TableSkeleton';
 import { useDebounce } from '../hooks/useDebounce';
+import { MigrationHint } from '../components/ui/MigrationHint';
 import { useCallTemplateStore } from '../stores/callTemplateStore';
 
 export function CallTemplatesPage() {
@@ -73,15 +74,7 @@ export function CallTemplatesPage() {
         <div className="mb-4 rounded-lg border border-priority-high/40 bg-priority-high/10 px-4 py-3 text-small text-priority-high flex justify-between gap-4">
           <div>
             <span>{error}</span>
-            {/call_templates/i.test(error) && (
-              <p className="mt-2 text-text-secondary">
-                Run{' '}
-                <code className="text-text-primary">
-                  supabase/migrations/20260521_call_templates.sql
-                </code>{' '}
-                in the Supabase dashboard → SQL Editor, then refresh this page.
-              </p>
-            )}
+            <MigrationHint error={error} />
           </div>
           <button type="button" onClick={clearError} className="underline shrink-0">
             Dismiss

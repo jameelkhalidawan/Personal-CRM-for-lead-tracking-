@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Copy, Pencil, Trash2 } from 'lucide-react';
 import { EMPTY_EMAIL_TEMPLATE_FORM } from '../../constants/emailTemplate';
 import { templateToForm } from '../../lib/emailTemplateApi';
 import { useEmailTemplateStore } from '../../stores/emailTemplateStore';
 import { SlidePanel } from '../ui/SlidePanel';
 import { Button } from '../ui/Button';
+import { MigrationHint } from '../ui/MigrationHint';
 import { EmailTemplateForm } from './EmailTemplateForm';
 
 export function EmailTemplatePanel({
@@ -15,24 +16,43 @@ export function EmailTemplatePanel({
   onEdit,
   onDeleteRequest,
 }) {
-  const { saving, create, update, getCategories } = useEmailTemplateStore();
+  const { saving, error, create, update, getCategories, clearError } =
+    useEmailTemplateStore();
   const categorySuggestions = getCategories();
   const [form, setForm] = useState({ ...EMPTY_EMAIL_TEMPLATE_FORM });
+  const [validationError, setValidationError] = useState('');
+  const wasOpenRef = useRef(false);
   const isCreate = mode === 'create';
   const isEdit = mode === 'edit';
-  const isView = mode === 'view';
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      wasOpenRef.current = false;
+      return;
+    }
+    const justOpened = !wasOpenRef.current;
+    wasOpenRef.current = true;
+    if (!justOpened) return;
+
+    setValidationError('');
+    clearError();
     if (isCreate) {
       setForm({ ...EMPTY_EMAIL_TEMPLATE_FORM });
     } else if (template) {
       setForm(templateToForm(template) ?? { ...EMPTY_EMAIL_TEMPLATE_FORM });
     }
-  }, [open, mode, template, isCreate]);
+  }, [open, mode, template?.id, isCreate, clearError]);
 
   const handleSave = async () => {
-    if (!form.name.trim()) return;
+    setValidationError('');
+    if (!form.name.trim()) {
+      setValidationError('Enter a template name.');
+      return;
+    }
+    if (!form.subject?.trim() && !form.body?.trim()) {
+      setValidationError('Add a subject or body for this template.');
+      return;
+    }
     const result = isCreate ? await create(form) : await update(template.id, form);
     if (result.ok) onClose();
   };
@@ -51,15 +71,23 @@ export function EmailTemplatePanel({
   return (
     <SlidePanel open={open} onClose={onClose} title={title}>
       {isCreate || isEdit ? (
-        <EmailTemplateForm
-          form={form}
-          onChange={setForm}
-          onSubmit={handleSave}
-          onCancel={onClose}
-          saving={saving}
-          categorySuggestions={categorySuggestions}
-          submitLabel={isCreate ? 'Add template' : 'Save changes'}
-        />
+        <>
+          {(validationError || error) && (
+            <div className="mb-4 rounded-lg border border-priority-high/40 bg-priority-high/10 px-3 py-2 text-small text-priority-high">
+              <span>{validationError || error}</span>
+              <MigrationHint error={error} />
+            </div>
+          )}
+          <EmailTemplateForm
+            form={form}
+            onChange={setForm}
+            onSubmit={handleSave}
+            onCancel={onClose}
+            saving={saving}
+            categorySuggestions={categorySuggestions}
+            submitLabel={isCreate ? 'Add template' : 'Save changes'}
+          />
+        </>
       ) : template ? (
         <div className="space-y-4">
           <p className="text-small text-text-muted">

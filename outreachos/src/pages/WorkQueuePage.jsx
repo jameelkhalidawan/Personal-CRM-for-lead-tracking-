@@ -43,6 +43,7 @@ export function WorkQueuePage() {
   const [readyOnly, setReadyOnly] = useState(false);
   const [index, setIndex] = useState(0);
   const [dmsByBusiness, setDmsByBusiness] = useState({});
+  const [dmLoadError, setDmLoadError] = useState(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [panelMode, setPanelMode] = useState('view');
   const [showHelp, setShowHelp] = useState(false);
@@ -65,9 +66,18 @@ export function WorkQueuePage() {
   useEffect(() => {
     if (!businessIds.length) {
       setDmsByBusiness({});
+      setDmLoadError(null);
       return;
     }
-    fetchDecisionMakersForBusinesses(businessIds).then(setDmsByBusiness).catch(() => {});
+    fetchDecisionMakersForBusinesses(businessIds)
+      .then((data) => {
+        setDmsByBusiness(data);
+        setDmLoadError(null);
+      })
+      .catch((err) => {
+        setDmsByBusiness({});
+        setDmLoadError(err.message ?? 'Could not load contacts');
+      });
   }, [businessIds.join(',')]);
 
   const queue = useMemo(
@@ -165,6 +175,12 @@ export function WorkQueuePage() {
         title="Work queue"
         description="Each row is one decision maker to contact. A company with 3 contacts appears as 3 separate queue items."
       />
+
+      {dmLoadError && (
+        <div className="mb-4 rounded-lg border border-priority-high/40 bg-priority-high/10 px-4 py-3 text-small text-priority-high">
+          Could not load contacts — queue may be incomplete. {dmLoadError}
+        </div>
+      )}
 
       {showHelp && (
         <div className="mb-4 rounded-lg border border-border bg-background-elevated/50 px-4 py-3 text-small text-text-secondary">

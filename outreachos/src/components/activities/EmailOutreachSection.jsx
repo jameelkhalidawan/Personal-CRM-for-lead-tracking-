@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Copy, Mail } from 'lucide-react';
 import {
   buildTemplateContext,
   formatEmailForNotes,
   renderTemplate,
 } from '../../lib/templateRender';
+import { shouldReplaceTemplateNotes } from '../../lib/templateAutoFill';
 import { useEmailTemplateStore } from '../../stores/emailTemplateStore';
 import { usePreferencesStore } from '../../stores/preferencesStore';
 import { filterTemplatesByContext } from '../../lib/templateCategories';
@@ -23,6 +24,7 @@ export function EmailOutreachSection({
     (s) => s.serviceTemplateCategories ?? {},
   );
   const [selectedId, setSelectedId] = useState(form.template_id ?? '');
+  const lastAutoNotesRef = useRef('');
 
   const sortedTemplates = filterTemplatesByContext(
     templates,
@@ -67,12 +69,27 @@ export function EmailOutreachSection({
     ? renderTemplate(selectedTemplate.body, context)
     : form.email_body;
 
-  const applyRendered = (templateId, subject, body) => {
+  const applyRendered = (templateId, subject, body, force = false) => {
+    const notes = formatEmailForNotes(subject, body);
+    if (
+      !force &&
+      !shouldReplaceTemplateNotes(form.notes, lastAutoNotesRef.current)
+    ) {
+      onPatch({
+        template_id: templateId ?? '',
+        email_subject: subject,
+        email_body: body,
+        outreach_channel: 'email',
+      });
+      return;
+    }
+    lastAutoNotesRef.current = notes.trim();
     onPatch({
       template_id: templateId ?? '',
       email_subject: subject,
       email_body: body,
-      notes: formatEmailForNotes(subject, body),
+      notes,
+      outreach_channel: 'email',
     });
   };
 
@@ -82,23 +99,24 @@ export function EmailOutreachSection({
     if (!t) return;
     const subject = renderTemplate(t.subject, context);
     const body = renderTemplate(t.body, context);
-    applyRendered(t.id, subject, body);
+    applyRendered(t.id, subject, body, false);
   }, [form.decision_maker_id, business?.id, selectedId, context]);
 
   const handleSelectTemplate = (id) => {
     setSelectedId(id);
     if (!id) {
-      applyRendered('', form.email_subject, form.email_body);
+      lastAutoNotesRef.current = '';
+      applyRendered('', form.email_subject, form.email_body, true);
       return;
     }
     const t = sortedTemplates.find((x) => x.id === id);
     if (!t) return;
     const subject = renderTemplate(t.subject, context);
     const body = renderTemplate(t.body, context);
-    applyRendered(t.id, subject, body);
+    applyRendered(t.id, subject, body, true);
   };
 
-  const copy = async (text, label) => {
+  const copy = async (text) => {
     if (!text) return;
     await navigator.clipboard?.writeText(text);
   };
@@ -184,8 +202,8 @@ export function EmailOutreachSection({
       )}
 
       <p className="text-small text-text-muted">
-        Variables are filled from the business and selected contact. This exact text is saved
-        in the activity log when you submit.
+        Rendered text is saved in notes when you submit. Template choice is stored on the
+        activity when the database migration is applied.
       </p>
     </div>
   );

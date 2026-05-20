@@ -28,7 +28,9 @@ export function activityToForm(activity) {
       activity.outreach_channel ?? getChannelForActivityType(activity.type) ?? '',
     email_subject: '',
     email_body: '',
-    template_id: '',
+    template_id: activity.template_id ?? '',
+    call_template_id: activity.call_template_id ?? '',
+    call_script_id: activity.call_script_id ?? '',
   };
 }
 
@@ -61,8 +63,22 @@ function buildPayload(form, businessId, performedBy) {
     notes: resolveActivityNotes(form),
     followup_at: fromDatetimeLocalValue(form.followup_at),
     outreach_channel: channel,
+    template_id: form.template_id || null,
+    call_template_id: form.call_template_id || null,
+    call_script_id: form.call_script_id || null,
   };
 }
+
+const ACTIVITY_WRITABLE_FIELDS = [
+  'decision_maker_id',
+  'type',
+  'notes',
+  'followup_at',
+  'outreach_channel',
+  'template_id',
+  'call_template_id',
+  'call_script_id',
+];
 
 async function syncBusinessStatusFromOutcome(businessId, activityType) {
   const status = STATUS_FROM_OUTCOME[activityType];
@@ -157,16 +173,13 @@ export async function createActivity(businessId, form, performedBy) {
 export async function updateActivity(id, businessId, form, performedBy) {
   const supabase = getSupabase();
   const payload = buildPayload(form, businessId, performedBy);
+  const updateRow = Object.fromEntries(
+    ACTIVITY_WRITABLE_FIELDS.map((k) => [k, payload[k]]),
+  );
 
   const { data, error } = await supabase
     .from('activities')
-    .update({
-      decision_maker_id: payload.decision_maker_id,
-      type: payload.type,
-      notes: payload.notes,
-      followup_at: payload.followup_at,
-      outreach_channel: payload.outreach_channel,
-    })
+    .update(updateRow)
     .eq('id', id)
     .select('*, decision_makers ( id, name )')
     .single();

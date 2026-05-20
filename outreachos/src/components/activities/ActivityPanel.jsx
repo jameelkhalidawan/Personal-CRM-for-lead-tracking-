@@ -8,6 +8,7 @@ import { useActivityStore } from '../../stores/activityStore';
 import { useAuthStore } from '../../stores/authStore';
 import { SlidePanel } from '../ui/SlidePanel';
 import { Button } from '../ui/Button';
+import { MigrationHint } from '../ui/MigrationHint';
 import { ActivityForm } from './ActivityForm';
 import { ActivityTypeBadge } from './ActivityTypeBadge';
 
@@ -37,7 +38,7 @@ export function ActivityPanel({
   preset,
   onSaved,
 }) {
-  const { saving, create, update } = useActivityStore();
+  const { saving, error, create, update, clearError } = useActivityStore();
   const user = useAuthStore((s) => s.user);
   const [form, setForm] = useState({ ...EMPTY_ACTIVITY_FORM });
   const [stageLabel, setStageLabel] = useState(null);
@@ -48,6 +49,7 @@ export function ActivityPanel({
 
   useEffect(() => {
     if (!open) return;
+    clearError();
     if (isCreate) {
       if (preset) {
         setForm({
@@ -129,6 +131,20 @@ export function ActivityPanel({
     <SlidePanel open={open} onClose={handleClose} title={title} zClass="z-[60]">
       {businessName && (
         <p className="text-small text-text-muted -mt-2 mb-4">at {businessName}</p>
+      )}
+
+      {error && (isCreate || isEdit) && (
+        <div className="mb-4 rounded-lg border border-priority-high/40 bg-priority-high/10 px-3 py-2 text-small text-priority-high">
+          <span>{error}</span>
+          <MigrationHint error={error} />
+          <button
+            type="button"
+            onClick={clearError}
+            className="mt-2 underline text-xs"
+          >
+            Dismiss
+          </button>
+        </div>
       )}
 
       {isCreate || isEdit ? (
