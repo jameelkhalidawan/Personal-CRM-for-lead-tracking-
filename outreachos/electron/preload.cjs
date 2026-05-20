@@ -17,6 +17,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     isEnabled: () => ipcRenderer.invoke('auto-launch:get'),
     setEnabled: (enabled) => ipcRenderer.invoke('auto-launch:set', enabled),
   },
+  appConfig: {
+    get: () => ipcRenderer.invoke('app-config:get'),
+    set: (payload) => ipcRenderer.invoke('app-config:set', payload),
+    clear: () => ipcRenderer.invoke('app-config:clear'),
+  },
   reminders: {
     notify: (payload) => ipcRenderer.invoke('reminders:notify', payload),
     onOpenBusiness: (callback) => {

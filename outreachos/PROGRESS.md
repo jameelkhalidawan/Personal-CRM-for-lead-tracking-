@@ -4,8 +4,8 @@
 > **Master plan (all 11 phases):** [PHASES.md](./PHASES.md)  
 > **Setup + test checklists per phase:** [docs/README.md](./docs/README.md)
 
-**Last updated:** 2026-05-19  
-**Current phase:** 10 complete → waiting for **GO** on Phase 11  
+**Last updated:** 2026-05-20  
+**Current phase:** 11 complete  
 **App version:** 0.1.0
 
 ---
@@ -24,26 +24,27 @@
 | 8 | Dashboard Kanban | [PHASE8_DASHBOARD.md](./docs/PHASE8_DASHBOARD.md) | ✅ |
 | 9 | Reminders | [PHASE9_REMINDERS.md](./docs/PHASE9_REMINDERS.md) | ✅ |
 | 10 | Templates + settings | [PHASE10_SETTINGS.md](./docs/PHASE10_SETTINGS.md) | ✅ |
-| 11 | Distribution | [PHASE11_DISTRIBUTION.md](./docs/PHASE11_DISTRIBUTION.md) | ⬜ |
+| 11 | Distribution | [PHASE11_DISTRIBUTION.md](./docs/PHASE11_DISTRIBUTION.md) | ✅ |
 
 ---
 
-## What to test right now (Phase 10)
+## Post-phase enhancements (conversation)
 
-→ [docs/PHASE10_SETTINGS.md](./docs/PHASE10_SETTINGS.md) — full checklist
-
-Minimum smoke test:
-
-- [ ] Email Templates CRUD works
-- [ ] Light/dark theme toggles and persists
-- [ ] Auto-start toggle (Electron)
-- [ ] Settings page has account + reminders + appearance
+- Analytics page, work queue, per-contact leads
+- Dashboard metrics + outreach channel on activities
+- Call script templates + polish pass
+- Migrations: `20260519`–`20260522`
 
 ---
 
-## Phase 11 — Next
+## Phase 11 — Test now
 
-Windows installer + distribution docs. Reply **GO** to start.
+→ [docs/PHASE11_DISTRIBUTION.md](./docs/PHASE11_DISTRIBUTION.md)  
+→ [docs/INSTALL.md](./docs/INSTALL.md)
+
+```bash
+npm run electron:build
+```
 
 ---
 
@@ -51,8 +52,8 @@ Windows installer + distribution docs. Reply **GO** to start.
 
 ```
 === OUTREACHOS CONTEXT SNAPSHOT ===
-Read: outreachos/PHASES.md + outreachos/PROGRESS.md + docs/README.md
-Current phase completed: 10
-Next phase: 11 — Distribution
+Read: outreachos/PHASES.md + outreachos/PROGRESS.md + docs/INSTALL.md
+Location: d:\Conscious Automation\CRM\outreachos
+All 11 phases complete. Build installer with npm run electron:build
 ===================================
 ```

@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, Notification } = require('electron');
 const path = require('path');
 const authStorage = require('./authStorage.cjs');
 const autoLaunch = require('./autoLaunch.cjs');
+const appConfig = require('./config.cjs');
 
 const isDev = !app.isPackaged;
 const VITE_DEV_SERVER_URL = 'http://localhost:5173';
@@ -41,6 +42,14 @@ function registerAuthIpc() {
 function registerAutoLaunchIpc() {
   ipcMain.handle('auto-launch:get', () => autoLaunch.isEnabled());
   ipcMain.handle('auto-launch:set', (_event, enabled) => autoLaunch.setEnabled(enabled));
+}
+
+function registerConfigIpc() {
+  ipcMain.handle('app-config:get', () => appConfig.readConfig());
+  ipcMain.handle('app-config:set', (_event, payload) =>
+    appConfig.writeConfig(payload ?? {}),
+  );
+  ipcMain.handle('app-config:clear', () => appConfig.clearConfig());
 }
 
 function registerReminderIpc() {
@@ -104,6 +113,7 @@ function createWindow() {
 
 app.whenReady().then(() => {
   registerAuthIpc();
+  registerConfigIpc();
   registerReminderIpc();
   registerAutoLaunchIpc();
   createWindow();

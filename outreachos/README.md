@@ -1,38 +1,40 @@
 # OutreachOS
 
-AI Sales CRM desktop app (Electron + React + Supabase).
+AI Sales CRM desktop app (Electron + React + Supabase) for Conscious Automation.
 
-**Documentation:**
+## Documentation
 
-- [PHASES.md](./PHASES.md) — master plan (all 11 phases, like the original prompt)
+- [PHASES.md](./PHASES.md) — master build plan (11 phases)
 - [PROGRESS.md](./PROGRESS.md) — live status (done / next)
-- [docs/README.md](./docs/README.md) — per-phase setup steps + test checklists
-
----
+- [docs/README.md](./docs/README.md) — per-phase setup + test checklists
+- [docs/INSTALL.md](./docs/INSTALL.md) — **Windows install & distribution**
 
 ## Development
 
 ```bash
 npm install
-cp .env.example .env   # add your Supabase URL + publishable key
+cp .env.example .env   # Supabase URL + anon key
+# Run supabase/schema.sql + migrations in Supabase SQL Editor
 npm run dev
 ```
 
----
+Opens Vite on port 5173 and Electron with hot reload.
 
-# React + Vite (template notes)
+## Production build (Windows installer)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+```bash
+npm run electron:build
+```
 
-Currently, two official plugins are available:
+Output: `release/OutreachOS Setup *.exe`
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Packaged apps can use baked-in env from build time **or** first-run Supabase setup (stored per machine).
+- See [docs/INSTALL.md](./docs/INSTALL.md) for team rollout.
 
-## React Compiler
+## Features (high level)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Businesses, decision makers, per-contact leads
+- Parallel call + email outreach playbook
+- Work queue, dashboard metrics, analytics
+- Email + call script templates
+- Desktop reminders (Electron notifications)

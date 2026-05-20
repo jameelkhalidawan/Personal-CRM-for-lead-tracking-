@@ -1,32 +1,41 @@
 import { createClient } from '@supabase/supabase-js';
 import { electronAuthStorage } from './authStorage';
+import { getRuntimeSupabaseConfig } from './runtimeConfig';
 
 const STAGE_LABELS = {
-  config: 'Checking .env configuration…',
+  config: 'Checking configuration…',
   network: 'Contacting Supabase servers…',
   api: 'Verifying API key…',
 };
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
 let supabaseClient = null;
 
+export function resetSupabaseClient() {
+  supabaseClient = null;
+}
+
+function getConfigValues() {
+  const { url, anonKey } = getRuntimeSupabaseConfig();
+  return { supabaseUrl: url, supabaseAnonKey: anonKey };
+}
+
 export function getSupabaseConfigError() {
+  const { supabaseUrl, supabaseAnonKey } = getConfigValues();
+
   if (!supabaseUrl?.trim()) {
-    return 'VITE_SUPABASE_URL is missing. Add it to your .env file.';
+    return 'Supabase URL is missing. Configure it in Settings or during first-time setup.';
   }
   if (!supabaseAnonKey?.trim()) {
-    return 'VITE_SUPABASE_ANON_KEY is missing. Add it to your .env file.';
+    return 'Supabase anon key is missing. Configure it in Settings or during first-time setup.';
   }
 
   try {
     const parsed = new URL(supabaseUrl.trim());
     if (!parsed.hostname.endsWith('.supabase.co')) {
-      return 'VITE_SUPABASE_URL must be a valid https://xxxx.supabase.co URL.';
+      return 'Supabase URL must be a valid https://xxxx.supabase.co URL.';
     }
   } catch {
-    return 'VITE_SUPABASE_URL is not a valid URL.';
+    return 'Supabase URL is not a valid URL.';
   }
 
   return null;
@@ -37,6 +46,8 @@ export function getSupabase() {
   if (configError) {
     throw new Error(configError);
   }
+
+  const { supabaseUrl, supabaseAnonKey } = getConfigValues();
 
   if (!supabaseClient) {
     supabaseClient = createClient(supabaseUrl.trim(), supabaseAnonKey.trim(), {
@@ -53,6 +64,7 @@ export function getSupabase() {
 }
 
 function getProjectHost() {
+  const { supabaseUrl } = getConfigValues();
   try {
     return new URL(supabaseUrl.trim()).hostname;
   } catch {
@@ -73,7 +85,7 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 10000) {
 }
 
 /**
- * Proves we can reach the Supabase project over the network (not just that .env is set).
+ * Proves we can reach the Supabase project over the network (not just that config is set).
  */
 export async function testSupabaseConnection(onProgress) {
   const report = (stage, message) => {
@@ -87,6 +99,7 @@ export async function testSupabaseConnection(onProgress) {
     return { ok: false, message: configError, stage: 'config' };
   }
 
+  const { supabaseUrl, supabaseAnonKey } = getConfigValues();
   const baseUrl = supabaseUrl.trim().replace(/\/$/, '');
   const apiKey = supabaseAnonKey.trim();
   const projectHost = getProjectHost();
@@ -99,7 +112,6 @@ export async function testSupabaseConnection(onProgress) {
 
   report('network', `Contacting ${projectHost}…`);
 
-  // Live request to Supabase Auth — proves URL is reachable and API key is accepted
   let healthResponse;
   try {
     healthResponse = await fetchWithTimeout(`${baseUrl}/auth/v1/health`, {

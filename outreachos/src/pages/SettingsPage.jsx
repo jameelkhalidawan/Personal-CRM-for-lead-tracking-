@@ -1,6 +1,7 @@
 import { PageHeader } from '../components/layout/PageHeader';
 import { AboutSettingsCard } from '../components/settings/AboutSettingsCard';
 import { DatabaseHealthCard } from '../components/settings/DatabaseHealthCard';
+import { SupabaseConfigCard } from '../components/settings/SupabaseConfigCard';
 import { AppearanceSettingsCard } from '../components/settings/AppearanceSettingsCard';
 import { ReminderSettingsCard } from '../components/settings/ReminderSettingsCard';
 import { StartupSettingsCard } from '../components/settings/StartupSettingsCard';
@@ -36,6 +37,7 @@ export function SettingsPage() {
           </CardBody>
         </Card>
 
+        <SupabaseConfigCard />
         <ReminderSettingsCard />
         <OutreachTimingSettingsCard />
         <ServiceTemplateSettingsCard />

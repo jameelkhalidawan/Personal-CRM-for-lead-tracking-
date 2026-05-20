@@ -7,21 +7,44 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies & build output
 node_modules
 dist
 dist-ssr
-*.local
+release
+build/icon.ico
+
+# Vite
+.vite
+
+# Environment (never commit secrets)
 .env
 .env.*
 !.env.example
 
-# Editor directories and files
+# Electron / electron-builder
+*.exe
+*.blockmap
+builder-debug.yml
+builder-effective-config.yaml
+
+# Editor & OS
 .vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
+Thumbs.db
+Desktop.ini
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# Test / coverage
+coverage
+*.local
+
+# Optional local Supabase CLI
+.branches
+.temp
