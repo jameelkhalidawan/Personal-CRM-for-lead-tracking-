@@ -83,10 +83,16 @@ export const usePreferencesStore = create((set, get) => ({
     applyTheme(prefs.theme);
 
     let autoStart = prefs.autoStart;
-    if (window.electronAPI?.autoLaunch) {
+    if (window.electronAPI?.userPrefs) {
       try {
-        const enabled = await window.electronAPI.autoLaunch.isEnabled();
-        autoStart = enabled;
+        const electronPrefs = await window.electronAPI.userPrefs.get();
+        autoStart = Boolean(electronPrefs?.autoStart);
+      } catch {
+        // keep stored value
+      }
+    } else if (window.electronAPI?.autoLaunch) {
+      try {
+        autoStart = await window.electronAPI.autoLaunch.isEnabled();
       } catch {
         // keep stored value
       }
@@ -105,7 +111,9 @@ export const usePreferencesStore = create((set, get) => ({
   },
 
   setAutoStart: async (autoStart) => {
-    if (window.electronAPI?.autoLaunch) {
+    if (window.electronAPI?.userPrefs) {
+      await window.electronAPI.userPrefs.set({ autoStart });
+    } else if (window.electronAPI?.autoLaunch) {
       await window.electronAPI.autoLaunch.setEnabled(autoStart);
     }
     const next = { ...readPrefs(), autoStart };

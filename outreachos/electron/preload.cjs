@@ -17,6 +17,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     isEnabled: () => ipcRenderer.invoke('auto-launch:get'),
     setEnabled: (enabled) => ipcRenderer.invoke('auto-launch:set', enabled),
   },
+  userPrefs: {
+    get: () => ipcRenderer.invoke('user-prefs:get'),
+    set: (partial) => ipcRenderer.invoke('user-prefs:set', partial),
+  },
   appConfig: {
     get: () => ipcRenderer.invoke('app-config:get'),
     set: (payload) => ipcRenderer.invoke('app-config:set', payload),

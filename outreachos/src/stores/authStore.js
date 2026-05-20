@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { getSupabase, getSupabaseConfigError } from '../lib/supabase';
+import { applyDatabaseConnectionOverride } from '../lib/runtimeConfig';
 import {
   clearElectronAuthStorage,
   getAuthFlags,
@@ -7,6 +8,14 @@ import {
 } from '../lib/authStorage';
 
 let authListenerBound = false;
+
+async function syncDatabaseConnectionFromServer() {
+  try {
+    await applyDatabaseConnectionOverride();
+  } catch {
+    // keep baked bootstrap credentials
+  }
+}
 
 function mapAuthError(message) {
   const lower = (message ?? '').toLowerCase();
@@ -85,6 +94,10 @@ export const useAuthStore = create((set) => ({
       authView: session ? 'login' : flags.hasEverLoggedIn ? 'login' : 'register',
     });
 
+    if (session) {
+      await syncDatabaseConnectionFromServer();
+    }
+
     if (!authListenerBound) {
       authListenerBound = true;
       supabase.auth.onAuthStateChange(async (event, nextSession) => {
@@ -94,6 +107,7 @@ export const useAuthStore = create((set) => ({
         }
         if (nextSession) {
           await setAuthFlags({ hasEverLoggedIn: true });
+          await syncDatabaseConnectionFromServer();
           set({
             user: nextSession.user,
             session: nextSession,
@@ -153,6 +167,7 @@ export const useAuthStore = create((set) => ({
       }
 
       await setAuthFlags({ hasEverLoggedIn: true });
+      await syncDatabaseConnectionFromServer();
       set({
         user: data.user,
         session: data.session,
@@ -194,6 +209,7 @@ export const useAuthStore = create((set) => ({
       }
 
       await setAuthFlags({ hasEverLoggedIn: true });
+      await syncDatabaseConnectionFromServer();
       set({
         user: data.user,
         session: data.session,

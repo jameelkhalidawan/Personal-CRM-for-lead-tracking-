@@ -1,12 +1,15 @@
+const { app } = require('electron');
 const AutoLaunch = require('electron-auto-launch');
 
 let autoLauncher = null;
 
 function getLauncher() {
   if (!autoLauncher) {
+    const exePath = app.isPackaged ? app.getPath('exe') : process.execPath;
     autoLauncher = new AutoLaunch({
       name: 'OutreachOS',
-      path: process.execPath,
+      path: exePath,
+      isHidden: false,
     });
   }
   return autoLauncher;

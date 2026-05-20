@@ -3,6 +3,7 @@ const path = require('path');
 const authStorage = require('./authStorage.cjs');
 const autoLaunch = require('./autoLaunch.cjs');
 const appConfig = require('./config.cjs');
+const userPrefs = require('./userPrefs.cjs');
 
 const isDev = !app.isPackaged;
 const VITE_DEV_SERVER_URL = 'http://localhost:5173';
@@ -42,6 +43,29 @@ function registerAuthIpc() {
 function registerAutoLaunchIpc() {
   ipcMain.handle('auto-launch:get', () => autoLaunch.isEnabled());
   ipcMain.handle('auto-launch:set', (_event, enabled) => autoLaunch.setEnabled(enabled));
+}
+
+function registerUserPrefsIpc() {
+  ipcMain.handle('user-prefs:get', () => userPrefs.readPrefs());
+  ipcMain.handle('user-prefs:set', async (_event, partial) => {
+    const next = userPrefs.writePrefs(partial ?? {});
+    if (Object.prototype.hasOwnProperty.call(partial ?? {}, 'autoStart')) {
+      await autoLaunch.setEnabled(Boolean(partial.autoStart));
+    }
+    return next;
+  });
+}
+
+/** Re-apply Windows startup registration from persisted preference (survives reinstall path fixes). */
+async function applyStoredAutoLaunch() {
+  try {
+    const prefs = userPrefs.readPrefs();
+    if (prefs.autoStart) {
+      await autoLaunch.setEnabled(true);
+    }
+  } catch (err) {
+    console.error('[OutreachOS] auto-launch sync failed:', err);
+  }
 }
 
 function registerConfigIpc() {
@@ -111,11 +135,13 @@ function createWindow() {
   });
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   registerAuthIpc();
   registerConfigIpc();
   registerReminderIpc();
   registerAutoLaunchIpc();
+  registerUserPrefsIpc();
+  await applyStoredAutoLaunch();
   createWindow();
 
   app.on('activate', () => {

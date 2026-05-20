@@ -14,7 +14,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "electron:build": "npm run build && electron-builder"
+    "electron:build": "npm run build && electron-builder",
+    "electron:build:fresh": "npm run build && electron-builder --config.directories.output=release-build"
   },
   "build": {
     "appId": "com.consciousautomation.outreachos",
