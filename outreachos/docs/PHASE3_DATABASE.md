@@ -4,14 +4,14 @@
 
 ## Goal
 
-All 7 tables, RLS policies, indexes, seed data (4 services, 6 email templates).
+Core tables, RLS policies, indexes, seed data (4 services, 6 email templates, 2 call templates). For admin connection settings, also run `migrations/20260523_app_settings.sql` — see [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md).
 
 All CRM tables live in Supabase PostgreSQL. The app does not create them automatically — you run the SQL once in the dashboard.
 
 ## Step 1 — Open SQL Editor
 
 1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
-2. Open project **kkjbkbwongnwgtkviepa** (or yours)
+2. Open **your** company project
 3. Click **SQL Editor** → **New query**
 
 ## Step 2 — Run the schema
@@ -32,18 +32,16 @@ You should see **Success** and a results table at the bottom with row counts, e.
 
 ## Step 3 — Confirm in Table Editor
 
-**Table Editor** should list these 7 tables:
+**Table Editor** should list at least:
 
-- `businesses`
-- `decision_makers`
-- `services`
-- `business_services`
-- `activities`
-- `email_templates`
-- `reminder_settings`
+- `businesses`, `decision_makers`, `services`, `business_services`
+- `activities`, `email_templates`, `call_templates`, `reminder_settings`
 
 `services` → 4 rows  
 `email_templates` → 6 rows  
+`call_templates` → 2 rows (after current `schema.sql`)  
+
+Optional: `app_settings` (after migration `20260523_app_settings.sql`)
 
 ## Step 4 — Test authenticated insert (Table Editor)
 

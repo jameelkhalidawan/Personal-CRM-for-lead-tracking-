@@ -5,41 +5,49 @@
 ## Goal
 
 - `npm run electron:build` → Windows NSIS installer
-- README / INSTALL guide for additional PCs (shared Supabase, per-machine login)
-- Secure handling of env in packaged app (runtime config in userData, not service role)
+- Team rollout with shared Supabase, per-user login
+- Secure env handling (baked bootstrap key + optional DB overrides behind admin password)
 
 ## What shipped
 
-- **electron/config.cjs** — Supabase URL + anon key in `%APPDATA%/OutreachOS/supabase-config.json`
-- **First-run setup** — `SupabaseSetupPage` when no config (packaged or dev without .env)
-- **Settings → Supabase connection** — update / test connection on Electron
-- **electron-builder** — NSIS installer, desktop shortcut, INSTALL.md bundled
-- **Runtime config** — `bootstrapRuntimeConfig()` before auth; dev still uses `.env`
+- **electron-builder** — NSIS installer, desktop shortcut, `INSTALL.md` bundled
+- **Runtime config** — `bootstrapRuntimeConfig()` uses build-time `.env`; optional overrides from `app_settings` after login
+- **Settings → Database connection (admin)** — password verified via Supabase RPC; URL/key stored in DB, not local JSON
+- **Settings → Startup** — Windows auto-launch via `electron-auto-launch` + `user-preferences.json` in `%APPDATA%/OutreachOS/`
+- **Encrypted session** — `electron/authStorage.cjs` + `safeStorage`
+- **HashRouter** + Vite `base: './'` for production `loadFile`
+
+Legacy (no longer used for team installs): `electron/config.cjs` local `supabase-config.json`, `SupabaseSetupPage` first-run flow.
 
 ## Build the installer
+
+See **[DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md)** §9.
 
 ```bash
 cd outreachos
 npm install
-# optional: .env for bake-in at build time
+# .env required for baked-in Supabase credentials
 npm run electron:build
 ```
 
 Installer: `release/OutreachOS Setup 0.1.0.exe`
+
+Fallback if `release/` is locked: `npm run electron:build:fresh` → `release-build/`.
 
 ## Test checklist
 
 - [ ] `npm run build` succeeds
 - [ ] `npm run electron:build` produces `release/*.exe`
 - [ ] Install on a clean PC (or VM)
-- [ ] First launch shows Supabase setup → save → login works
-- [ ] Settings → Supabase connection shows saved URL (key masked)
+- [ ] Sign in works (installer built with `.env`)
 - [ ] Settings → Database → Check database passes (after migrations)
-- [ ] Reminders + auto-start still work in installed app
-- [ ] `INSTALL.md` in install folder (`resources/INSTALL.md`)
+- [ ] Settings → Database connection (admin) unlocks with admin password
+- [ ] Settings → Startup enables Windows auto-launch
+- [ ] Reminders fire in installed app
+- [ ] `resources/INSTALL.md` present in install folder
 
 ## Notes
 
-- Add `build/icon.ico` for branded installer icons (optional; build works without)
-- Anon key in installer is acceptable; never ship service role key
-- HashRouter + `base: './'` required for `loadFile` in production
+- Add `build/icon.ico` for branded installer icons (optional)
+- Anon key in installer is expected for client apps; never ship **service role**
+- Share only the `.exe` to the team, not `win-unpacked/`

@@ -2,6 +2,8 @@
 
 **Status:** ✅ Complete
 
+> Full company setup: [DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md) §3 (Auth) and §7 (local dev).
+
 ## Goal
 
 Register once, auto-login on restart, logout clears session (Electron `safeStorage`).

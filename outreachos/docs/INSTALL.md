@@ -2,6 +2,8 @@
 
 OutreachOS is a desktop CRM for Conscious Automation. All machines connect to the **same Supabase project**; each user signs in with their own account.
 
+> **New developer setting up the whole project?** Use **[DEVELOPER_SETUP.md](./DEVELOPER_SETUP.md)** — Supabase project, database, auth, local dev, architecture, and troubleshooting.
+
 ## For developers (build the installer)
 
 1. Install Node.js 20+ and run `npm install` in `outreachos/`.
@@ -13,6 +15,8 @@ OutreachOS is a desktop CRM for Conscious Automation. All machines connect to th
 ```bash
 npm run electron:build
 ```
+
+If the build fails because `app.asar` is locked, close OutreachOS and run `npm run electron:build:fresh` (output in `release-build/`). See DEVELOPER_SETUP.md §9.
 
 6. Share only `release/OutreachOS Setup 0.1.0.exe` with the team (not the whole `release/` folder).
 
