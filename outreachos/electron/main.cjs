@@ -1,9 +1,11 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, Notification } = require('electron');
 const path = require('path');
 const authStorage = require('./authStorage.cjs');
 
 const isDev = !app.isPackaged;
 const VITE_DEV_SERVER_URL = 'http://localhost:5173';
+
+let mainWindow = null;
 
 function registerAuthIpc() {
   ipcMain.handle('auth-storage:get', (_event, key) => {
@@ -35,8 +37,36 @@ function registerAuthIpc() {
   });
 }
 
+function registerReminderIpc() {
+  ipcMain.handle('reminders:notify', (_event, { title, body, businessId }) => {
+    if (!Notification.isSupported()) {
+      return { ok: false, reason: 'not_supported' };
+    }
+
+    const notification = new Notification({
+      title: title || 'OutreachOS',
+      body: body || '',
+      silent: false,
+    });
+
+    notification.on('click', () => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        mainWindow.show();
+        mainWindow.focus();
+        if (businessId) {
+          mainWindow.webContents.send('reminders:open-business', businessId);
+        }
+      }
+    });
+
+    notification.show();
+    return { ok: true };
+  });
+}
+
 function createWindow() {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     minWidth: 1024,
@@ -60,10 +90,15 @@ function createWindow() {
   } else {
     mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
   }
+
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
 }
 
 app.whenReady().then(() => {
   registerAuthIpc();
+  registerReminderIpc();
   createWindow();
 
   app.on('activate', () => {

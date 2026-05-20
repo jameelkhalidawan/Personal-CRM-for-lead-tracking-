@@ -7,6 +7,7 @@ import { Input, Select, Textarea } from '../components/ui/Input';
 import { SearchInput } from '../components/ui/SearchInput';
 import { SlidePanel } from '../components/ui/SlidePanel';
 import { Modal } from '../components/ui/Modal';
+import { ReminderSettingsCard } from '../components/settings/ReminderSettingsCard';
 import { useAuthStore } from '../stores/authStore';
 
 export function SettingsPage() {
@@ -18,7 +19,7 @@ export function SettingsPage() {
     <>
       <PageHeader
         title="Settings"
-        description="Account, UI components preview, and app preferences (more in Phase 10)."
+        description="Account, reminders, and app preferences."
       />
 
       <div className="space-y-6">
@@ -36,6 +37,8 @@ export function SettingsPage() {
             </Button>
           </CardBody>
         </Card>
+
+        <ReminderSettingsCard />
 
         <Card>
           <CardHeader>

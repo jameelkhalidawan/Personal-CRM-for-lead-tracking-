@@ -15,6 +15,14 @@ declare global {
         get: () => Promise<{ hasEverLoggedIn: boolean }>;
         set: (flags: { hasEverLoggedIn: boolean }) => Promise<boolean>;
       };
+      reminders?: {
+        notify: (payload: {
+          title: string;
+          body: string;
+          businessId: string | null;
+        }) => Promise<{ ok: boolean; reason?: string }>;
+        onOpenBusiness: (callback: (businessId: string) => void) => () => void;
+      };
     };
   }
 }

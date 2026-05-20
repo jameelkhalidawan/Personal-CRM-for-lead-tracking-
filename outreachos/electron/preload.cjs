@@ -13,4 +13,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     get: () => ipcRenderer.invoke('auth-flags:get'),
     set: (flags) => ipcRenderer.invoke('auth-flags:set', flags),
   },
+  reminders: {
+    notify: (payload) => ipcRenderer.invoke('reminders:notify', payload),
+    onOpenBusiness: (callback) => {
+      const handler = (_event, businessId) => callback(businessId);
+      ipcRenderer.on('reminders:open-business', handler);
+      return () => ipcRenderer.removeListener('reminders:open-business', handler);
+    },
+  },
 });

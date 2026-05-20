@@ -5,7 +5,7 @@
 > **Setup + test checklists per phase:** [docs/README.md](./docs/README.md)
 
 **Last updated:** 2026-05-19  
-**Current phase:** 8 complete → waiting for **GO** on Phase 9  
+**Current phase:** 9 complete → waiting for **GO** on Phase 10  
 **App version:** 0.1.0
 
 ---
@@ -22,28 +22,28 @@
 | 6 | Decision makers | [PHASE6_DECISION_MAKERS.md](./docs/PHASE6_DECISION_MAKERS.md) | ✅ |
 | 7 | Activities | [PHASE7_ACTIVITIES.md](./docs/PHASE7_ACTIVITIES.md) | ✅ |
 | 8 | Dashboard Kanban | [PHASE8_DASHBOARD.md](./docs/PHASE8_DASHBOARD.md) | ✅ |
-| 9 | Reminders | [PHASE9_REMINDERS.md](./docs/PHASE9_REMINDERS.md) | ⬜ |
+| 9 | Reminders | [PHASE9_REMINDERS.md](./docs/PHASE9_REMINDERS.md) | ✅ |
 | 10 | Templates + settings | [PHASE10_SETTINGS.md](./docs/PHASE10_SETTINGS.md) | ⬜ |
 | 11 | Distribution | [PHASE11_DISTRIBUTION.md](./docs/PHASE11_DISTRIBUTION.md) | ⬜ |
 
 ---
 
-## What to test right now (Phase 8)
+## What to test right now (Phase 9)
 
-→ [docs/PHASE8_DASHBOARD.md](./docs/PHASE8_DASHBOARD.md) — full checklist
+→ [docs/PHASE9_REMINDERS.md](./docs/PHASE9_REMINDERS.md) — full checklist
 
 Minimum smoke test:
 
-- [ ] Dashboard stats load
-- [ ] Drag a lead to another Kanban column → status saves
-- [ ] **Add lead** from dashboard works
-- [ ] Follow-up card opens business panel
+- [ ] Settings → **Test notification** works (Electron)
+- [ ] **Check now** fires for a due/overdue business
+- [ ] Click notification → business panel opens
+- [ ] Save reminder settings persist
 
 ---
 
-## Phase 9 — Next
+## Phase 10 — Next
 
-Desktop reminders for due follow-ups. Reply **GO** to start.
+Email templates, full settings (appearance, auto-start). Reply **GO** to start.
 
 ---
 
@@ -52,7 +52,7 @@ Desktop reminders for due follow-ups. Reply **GO** to start.
 ```
 === OUTREACHOS CONTEXT SNAPSHOT ===
 Read: outreachos/PHASES.md + outreachos/PROGRESS.md + docs/README.md
-Current phase completed: 8
-Next phase: 9 — Reminders
+Current phase completed: 9
+Next phase: 10 — Templates + settings
 ===================================
 ```

@@ -38,7 +38,7 @@
 | 6 | Decision makers | [docs/PHASE6_DECISION_MAKERS.md](./docs/PHASE6_DECISION_MAKERS.md) | ⬜ |
 | 7 | Activities timeline | [docs/PHASE7_ACTIVITIES.md](./docs/PHASE7_ACTIVITIES.md) | ✅ |
 | 8 | Dashboard + pipeline Kanban | [docs/PHASE8_DASHBOARD.md](./docs/PHASE8_DASHBOARD.md) | ✅ |
-| 9 | Reminders + notifications | [docs/PHASE9_REMINDERS.md](./docs/PHASE9_REMINDERS.md) | ⬜ |
+| 9 | Reminders + notifications | [docs/PHASE9_REMINDERS.md](./docs/PHASE9_REMINDERS.md) | ✅ |
 | 10 | Email templates + settings + auto-start | [docs/PHASE10_SETTINGS.md](./docs/PHASE10_SETTINGS.md) | ⬜ |
 | 11 | Build, package, distribution | [docs/PHASE11_DISTRIBUTION.md](./docs/PHASE11_DISTRIBUTION.md) | ⬜ |
 

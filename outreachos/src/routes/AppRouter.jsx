@@ -1,5 +1,7 @@
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import { ReminderNavigationListener } from '../components/ReminderNavigationListener';
+import { useReminderScheduler } from '../hooks/useReminderScheduler';
 import { AppLayout } from '../layouts/AppLayout';
 import { DashboardPage } from '../pages/DashboardPage';
 import { BusinessesPage } from '../pages/BusinessesPage';
@@ -9,8 +11,11 @@ import { EmailTemplatesPage } from '../pages/EmailTemplatesPage';
 import { SettingsPage } from '../pages/SettingsPage';
 
 export function AppRouter() {
+  useReminderScheduler();
+
   return (
     <HashRouter>
+      <ReminderNavigationListener />
       <ErrorBoundary>
         <Routes>
           <Route element={<AppLayout />}>
