@@ -5,6 +5,8 @@ const STORAGE_KEY = 'outreachos_preferences';
 const DEFAULT_PREFS = {
   theme: 'dark',
   autoStart: false,
+  /** serviceId -> template category names (#13) */
+  serviceTemplateCategories: {},
 };
 
 function readPrefs() {
@@ -62,5 +64,24 @@ export const usePreferencesStore = create((set, get) => ({
     const next = { ...readPrefs(), autoStart };
     writePrefs(next);
     set({ autoStart });
+  },
+
+  setServiceTemplateCategories: (serviceTemplateCategories) => {
+    const next = { ...readPrefs(), serviceTemplateCategories };
+    writePrefs(next);
+    set({ serviceTemplateCategories });
+  },
+
+  setServiceCategories: (serviceId, categories) => {
+    const current = readPrefs().serviceTemplateCategories ?? {};
+    const next = {
+      ...readPrefs(),
+      serviceTemplateCategories: {
+        ...current,
+        [serviceId]: categories,
+      },
+    };
+    writePrefs(next);
+    set({ serviceTemplateCategories: next.serviceTemplateCategories });
   },
 }));

@@ -8,6 +8,7 @@ import { isEmailActivityType } from '../../lib/templateRender';
 import { Input, Select, Textarea } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { EmailOutreachSection } from './EmailOutreachSection';
+import { FollowUpPresets } from './FollowUpPresets';
 
 export function ActivityForm({
   form,
@@ -23,6 +24,8 @@ export function ActivityForm({
   stageLabel,
   isOutcome,
   outcomeHint,
+  onDuplicateLastEmail,
+  canDuplicateLastEmail = false,
 }) {
   const set = (field, value) => onChange({ ...form, [field]: value });
   const showEmailTemplates = !isOutcome && isEmailActivityType(form.type);
@@ -105,13 +108,20 @@ export function ActivityForm({
       )}
 
       {showEmailTemplates && (
-        <EmailOutreachSection
-          form={form}
-          onPatch={onPatch}
-          business={business}
-          decisionMakers={decisionMakers}
-          user={user}
-        />
+        <>
+          {canDuplicateLastEmail && onDuplicateLastEmail && (
+            <Button type="button" variant="secondary" size="sm" onClick={onDuplicateLastEmail}>
+              Duplicate last email
+            </Button>
+          )}
+          <EmailOutreachSection
+            form={form}
+            onPatch={onPatch}
+            business={business}
+            decisionMakers={decisionMakers}
+            user={user}
+          />
+        </>
       )}
 
       <Textarea
@@ -128,8 +138,12 @@ export function ActivityForm({
         }
       />
 
+      <div>
+        <p className="text-label uppercase text-text-muted mb-1.5">Next follow-up</p>
+        <FollowUpPresets value={form.followup_at} onChange={(v) => set('followup_at', v)} />
+      </div>
       <Input
-        label="Next follow-up"
+        label="Or pick date & time"
         type="datetime-local"
         value={form.followup_at}
         onChange={(e) => set('followup_at', e.target.value)}

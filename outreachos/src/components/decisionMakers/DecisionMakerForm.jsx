@@ -78,6 +78,15 @@ export function DecisionMakerForm({
           </option>
         ))}
       </Select>
+      <label className="flex items-center gap-2 text-body text-text-secondary cursor-pointer">
+        <input
+          type="checkbox"
+          checked={Boolean(form.is_primary)}
+          onChange={(e) => set('is_primary', e.target.checked)}
+          className="rounded border-border"
+        />
+        Primary contact for this business (used by default when logging outreach)
+      </label>
       <Textarea
         label="Notes"
         value={form.notes}

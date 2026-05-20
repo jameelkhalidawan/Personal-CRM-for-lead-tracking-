@@ -16,9 +16,10 @@ import {
   getFollowUpBuckets,
 } from '../lib/dashboardStats';
 import {
-  enrichFollowUpList,
+  expandFollowUpListByContact,
   groupActivitiesByBusiness,
 } from '../lib/followUpInsight';
+import { buildInsightsByBusinessId } from '../lib/insightsMap';
 
 export function DashboardPage() {
   const navigate = useNavigate();
@@ -67,6 +68,20 @@ export function DashboardPage() {
     [activities],
   );
 
+  const allBusinessIds = useMemo(() => businesses.map((b) => b.id), [businesses]);
+
+  useEffect(() => {
+    if (!allBusinessIds.length) return;
+    fetchDecisionMakersForBusinesses(allBusinessIds)
+      .then((map) => setDmsByBusiness((prev) => ({ ...prev, ...map })))
+      .catch(() => {});
+  }, [allBusinessIds.join(',')]);
+
+  const insightsByBusinessId = useMemo(
+    () => buildInsightsByBusinessId(businesses, activitiesByBusiness, dmsByBusiness),
+    [businesses, activitiesByBusiness, dmsByBusiness],
+  );
+
   const followUpBusinessIds = useMemo(() => {
     const ids = [
       ...rawFollowUps.overdue,
@@ -100,17 +115,17 @@ export function DashboardPage() {
 
   const followUps = useMemo(
     () => ({
-      overdue: enrichFollowUpList(
+      overdue: expandFollowUpListByContact(
         rawFollowUps.overdue,
         activitiesByBusiness,
         dmsByBusiness,
       ),
-      dueToday: enrichFollowUpList(
+      dueToday: expandFollowUpListByContact(
         rawFollowUps.dueToday,
         activitiesByBusiness,
         dmsByBusiness,
       ),
-      upcoming: enrichFollowUpList(
+      upcoming: expandFollowUpListByContact(
         rawFollowUps.upcoming,
         activitiesByBusiness,
         dmsByBusiness,
@@ -158,6 +173,8 @@ export function DashboardPage() {
       <PipelineKanban
         businesses={businesses}
         loading={loading}
+        insightsByBusinessId={insightsByBusinessId}
+        dmsByBusiness={dmsByBusiness}
         onStatusChange={handleStatusChange}
         onOpenBusiness={openBusiness}
       />

@@ -1,4 +1,6 @@
 import { ACTIVITY_TYPE_LABELS, OUTCOME_ACTIVITY_TYPES } from '../constants/activity';
+import { pickPrimaryContact } from './contactPick';
+import { getLeadTitle, getLeadContext, getOutreachContactsForBusiness } from './leadModel';
 import { getPlaybookState } from './outreachSequence';
 
 function sortActivitiesNewest(activities) {
@@ -73,12 +75,59 @@ export function groupActivitiesByBusiness(activities) {
 }
 
 export function enrichFollowUpList(businesses, activitiesByBusiness, dmsByBusiness) {
-  return (businesses ?? []).map((business) => ({
-    business,
-    insight: getFollowUpInsight(
+  return (businesses ?? []).map((business) => {
+    const dms = dmsByBusiness[business.id] ?? [];
+    const decisionMaker = pickPrimaryContact(dms, business);
+    return {
+      business,
+      decisionMaker,
+      insight: getFollowUpInsight(
+        business,
+        activitiesByBusiness[business.id] ?? [],
+        dms,
+      ),
+      leadTitle: getLeadTitle(decisionMaker, business),
+      leadContext: getLeadContext(decisionMaker, business),
+    };
+  });
+}
+
+/** One follow-up card per decision maker when a business has multiple contacts */
+export function expandFollowUpListByContact(businesses, activitiesByBusiness, dmsByBusiness) {
+  const items = [];
+
+  for (const business of businesses ?? []) {
+    const dms = dmsByBusiness[business.id] ?? [];
+    const contacts = getOutreachContactsForBusiness(business, dms);
+    const insight = getFollowUpInsight(
       business,
       activitiesByBusiness[business.id] ?? [],
-      dmsByBusiness[business.id] ?? [],
-    ),
-  }));
+      dms,
+    );
+
+    if (!contacts.length) {
+      items.push({
+        business,
+        decisionMaker: null,
+        insight,
+        leadTitle: getLeadTitle(null, business),
+        leadContext: getLeadContext(null, business),
+      });
+      continue;
+    }
+
+    for (const decisionMaker of contacts) {
+      items.push({
+        business,
+        decisionMaker,
+        insight,
+        leadTitle: getLeadTitle(decisionMaker, business),
+        leadContext: getLeadContext(decisionMaker, business),
+        contactIndex: contacts.indexOf(decisionMaker) + 1,
+        contactTotal: contacts.length,
+      });
+    }
+  }
+
+  return items;
 }

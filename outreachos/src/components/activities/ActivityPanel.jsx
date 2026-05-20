@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Building2, Pencil, Trash2 } from 'lucide-react';
-import { EMPTY_ACTIVITY_FORM } from '../../constants/activity';
+import { EMAIL_ACTIVITY_TYPES, EMPTY_ACTIVITY_FORM } from '../../constants/activity';
+import { getLastEmailActivityPreset } from '../../lib/duplicateEmail';
 import { activityToForm } from '../../lib/activityApi';
 import { formatDateTime } from '../../lib/format';
 import { useActivityStore } from '../../stores/activityStore';
@@ -28,11 +29,13 @@ export function ActivityPanel({
   business,
   activity,
   decisionMakers = [],
+  activities = [],
   onClose,
   onEdit,
   onDeleteRequest,
   onOpenBusiness,
   preset,
+  onSaved,
 }) {
   const { saving, create, update } = useActivityStore();
   const user = useAuthStore((s) => s.user);
@@ -53,6 +56,9 @@ export function ActivityPanel({
           notes: preset.notes ?? '',
           followup_at: preset.followup_at ?? '',
           decision_maker_id: preset.decision_maker_id ?? '',
+          email_subject: preset.email_subject ?? '',
+          email_body: preset.email_body ?? '',
+          template_id: preset.template_id ?? '',
         });
         setStageLabel(preset.step?.label ?? preset.reason ?? null);
       } else {
@@ -83,8 +89,22 @@ export function ActivityPanel({
       : await update(activity.id, businessId, form);
     if (result.ok) {
       setDirty(false);
+      onSaved?.();
       onClose();
     }
+  };
+
+  const canDuplicateLastEmail =
+    isCreate &&
+    EMAIL_ACTIVITY_TYPES.includes(form.type) &&
+    getLastEmailActivityPreset(activities, decisionMakers, business);
+
+  const handleDuplicateLastEmail = () => {
+    const presetDup = getLastEmailActivityPreset(activities, decisionMakers, business);
+    if (!presetDup) return;
+    setForm({ ...EMPTY_ACTIVITY_FORM, ...presetDup });
+    setStageLabel(presetDup.step?.label ?? null);
+    setDirty(true);
   };
 
   const title =
@@ -127,6 +147,8 @@ export function ActivityPanel({
           stageLabel={stageLabel}
           isOutcome={preset?.isOutcome}
           outcomeHint={preset?.outcomeHint}
+          canDuplicateLastEmail={!!canDuplicateLastEmail}
+          onDuplicateLastEmail={handleDuplicateLastEmail}
         />
       ) : isView && activity ? (
         <div className="space-y-6">

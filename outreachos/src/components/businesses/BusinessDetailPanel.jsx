@@ -3,6 +3,13 @@ import { ActivityPanel } from '../activities/ActivityPanel';
 import { ActivityTimeline } from '../activities/ActivityTimeline';
 import { OutreachPlaybook } from '../activities/OutreachPlaybook';
 import { getSuggestedPreset, presetFromOutcome } from '../../lib/outreachSequence';
+import { LeadIdentity } from './LeadIdentity';
+import { LeadReadinessBadge } from './LeadReadinessBadge';
+import { CopyOutreachPackButton } from './CopyOutreachPackButton';
+import { pickPrimaryContact } from '../../lib/contactPick';
+import { useLeadShortcuts } from '../../hooks/useLeadShortcuts';
+import { buildOutreachPack } from '../../lib/outreachPack';
+import { useAuthStore } from '../../stores/authStore';
 import { DecisionMakerPanel } from '../decisionMakers/DecisionMakerPanel';
 import { PreferredContactIcon } from '../decisionMakers/PreferredContactIcon';
 import { useDecisionMakerStore } from '../../stores/decisionMakerStore';
@@ -40,6 +47,9 @@ export function BusinessDetailPanel({
   onEdit,
   onCancelEdit,
   onDeleteRequest,
+  onActivityLogged,
+  focusContactId = null,
+  activityPreset = null,
 }) {
   const {
     detail,
@@ -58,6 +68,7 @@ export function BusinessDetailPanel({
   const [dmDelete, setDmDelete] = useState(null);
   const [activityPanel, setActivityPanel] = useState(null);
   const [activityDelete, setActivityDelete] = useState(null);
+  const [activeContactId, setActiveContactId] = useState(null);
 
   useEffect(() => {
     if (open && businessId && (mode === 'view' || mode === 'edit')) {
@@ -65,9 +76,86 @@ export function BusinessDetailPanel({
     }
   }, [open, businessId, mode, loadBusinessDetail]);
 
+  useEffect(() => {
+    if (!open) {
+      setActivityPanel(null);
+      setActiveContactId(null);
+      return;
+    }
+    setActiveContactId(focusContactId ?? null);
+  }, [open, focusContactId]);
+
+  useEffect(() => {
+    if (!open || !activityPreset || mode !== 'view' || dmPanel) return;
+    setActivityPanel({
+      mode: 'create',
+      preset: {
+        ...activityPreset,
+        decision_maker_id:
+          focusContactId || activityPreset.decision_maker_id || '',
+      },
+    });
+  }, [open, activityPreset, mode, focusContactId, dmPanel]);
+
   const business =
     businessId && detail?.business?.id === businessId ? detail.business : null;
   const isEdit = mode === 'edit';
+  const resolvedContactId = activeContactId ?? focusContactId;
+  const focusContact =
+    detail?.decisionMakers?.find((dm) => dm.id === resolvedContactId) ??
+    pickPrimaryContact(detail?.decisionMakers, business);
+
+  const buildPresetForContact = (base, contactId = resolvedContactId) => {
+    if (!base) return undefined;
+    const dmId =
+      contactId ||
+      base.decision_maker_id ||
+      focusContact?.id ||
+      '';
+    return { ...base, decision_maker_id: dmId, step: base.step };
+  };
+
+  const openLogForContact = (dm) => {
+    setActiveContactId(dm.id);
+    const suggested = getSuggestedPreset(
+      business,
+      detail?.decisionMakers,
+      detail?.activities,
+    );
+    setActivityPanel({
+      mode: 'create',
+      preset: buildPresetForContact(suggested, dm.id),
+    });
+  };
+
+  const openSuggestedLog = () => {
+    if (!business) return;
+    const suggested =
+      activityPreset ??
+      getSuggestedPreset(business, detail?.decisionMakers, detail?.activities);
+    setActivityPanel({
+      mode: 'create',
+      preset: buildPresetForContact(suggested),
+    });
+  };
+
+  const user = useAuthStore((s) => s.user);
+
+  useLeadShortcuts({
+    enabled: open && !!business && !isEdit,
+    onLogSuggested: openSuggestedLog,
+    onCopyPack: async () => {
+      if (!business) return;
+      const text = buildOutreachPack({
+        business,
+        decisionMaker: focusContact,
+        decisionMakers: detail?.decisionMakers,
+        activities: detail?.activities,
+        user,
+      });
+      await navigator.clipboard?.writeText(text);
+    },
+  });
 
   const startEdit = () => {
     if (!business) return;
@@ -137,42 +225,45 @@ export function BusinessDetailPanel({
         />
       ) : business ? (
         <div className="space-y-6">
-          <div className="flex flex-wrap gap-2">
+          <LeadIdentity
+            decisionMaker={focusContact}
+            business={business}
+            size="lg"
+          />
+          <div className="flex flex-wrap gap-2 items-center">
             <StatusBadge status={business.status} />
             <PriorityBadge priority={business.priority} />
+            <LeadReadinessBadge
+              business={business}
+              decisionMakers={detail.decisionMakers}
+              focusContact={focusContact}
+            />
           </div>
           <div className="flex flex-wrap gap-2">
+            <CopyOutreachPackButton
+              business={business}
+              decisionMaker={focusContact}
+              decisionMakers={detail.decisionMakers}
+              activities={detail.activities}
+            />
             <Button variant="secondary" size="sm" onClick={startEdit}>
               <Pencil className="h-4 w-4" />
               Edit
+            </Button>
+            <Button variant="secondary" size="sm" onClick={openSuggestedLog}>
+              <Activity className="h-4 w-4" />
+              Log outreach
             </Button>
             <Button
               variant="secondary"
               size="sm"
               onClick={() => {
-                const suggested = getSuggestedPreset(
-                  business,
-                  detail?.decisionMakers,
-                  detail?.activities,
-                );
-                setActivityPanel({
-                  mode: 'create',
-                  preset: suggested
-                    ? { ...suggested, step: suggested.step }
-                    : undefined,
-                });
+                setActivityPanel(null);
+                setDmPanel({ mode: 'create' });
               }}
             >
-              <Activity className="h-4 w-4" />
-              Log suggested
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setDmPanel({ mode: 'create' })}
-            >
               <UserPlus className="h-4 w-4" />
-              Add decision maker
+              Add contact
             </Button>
             <Button
               variant="danger"
@@ -225,19 +316,38 @@ export function BusinessDetailPanel({
           )}
           <div>
             <p className="text-label uppercase text-text-muted mb-2">
-              Decision makers
+              Decision makers ({detail.decisionMakers?.length ?? 0})
+            </p>
+            <p className="text-small text-text-muted mb-3">
+              Each contact can be reached separately. Select who you are outreach to, or log per
+              person below.
             </p>
             {detail.decisionMakers?.length ? (
               <ul className="space-y-2">
                 {detail.decisionMakers.map((dm) => (
-                  <li key={dm.id}>
+                  <li
+                    key={dm.id}
+                    className={`rounded-lg border ${
+                      dm.id === focusContact?.id
+                        ? 'border-accent-primary bg-accent-primary/5'
+                        : 'border-border'
+                    }`}
+                  >
                     <button
                       type="button"
-                      onClick={() => setDmPanel({ mode: 'view', dm })}
-                      className="w-full rounded-lg border border-border px-3 py-2 text-small text-left transition-colors hover:bg-background-elevated/50 flex items-center justify-between gap-2"
+                      onClick={() => {
+                        setActiveContactId(dm.id);
+                        setDmPanel({ mode: 'view', dm });
+                      }}
+                      className="w-full px-3 py-2 text-small text-left transition-colors hover:bg-background-elevated/50 flex items-center justify-between gap-2"
                     >
                       <span>
-                        <span className="text-text-primary font-medium">{dm.name}</span>
+                        <span className="text-text-primary font-medium">
+                          {dm.name}
+                          {dm.is_primary && (
+                            <span className="ml-1 text-accent-primary text-xs">★ Primary</span>
+                          )}
+                        </span>
                         {dm.role && (
                           <span className="text-text-muted"> · {dm.role}</span>
                         )}
@@ -246,14 +356,48 @@ export function BusinessDetailPanel({
                             {dm.email}
                           </span>
                         )}
+                        {dm.phone_number && (
+                          <span className="block text-text-muted text-xs">
+                            {dm.phone_number}
+                          </span>
+                        )}
                       </span>
                       <PreferredContactIcon method={dm.preferred_contact} />
                     </button>
+                    <div className="px-3 pb-2 flex gap-2">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => setActiveContactId(dm.id)}
+                      >
+                        Target
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => openLogForContact(dm)}
+                      >
+                        Log outreach
+                      </Button>
+                    </div>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-small text-text-muted">None yet</p>
+              <div className="space-y-3">
+                <p className="text-small text-text-muted">No contacts yet — add who you reach out to.</p>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setActivityPanel(null);
+                    setDmPanel({ mode: 'create' });
+                  }}
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Add first contact
+                </Button>
+              </div>
             )}
           </div>
           <OutreachPlaybook
@@ -262,15 +406,31 @@ export function BusinessDetailPanel({
             activities={detail.activities}
             saving={activitySaving}
             onLogStep={(preset, step) =>
-              setActivityPanel({ mode: 'create', preset: { ...preset, step } })
+              setActivityPanel({
+                mode: 'create',
+                preset: buildPresetForContact({ ...preset, step }),
+              })
             }
             onLogOutcome={(action) =>
               setActivityPanel({
                 mode: 'create',
-                preset: presetFromOutcome(action),
+                preset: buildPresetForContact(presetFromOutcome(action)),
               })
             }
-            onCustomLog={() => setActivityPanel({ mode: 'create' })}
+            onLogCallOutcome={(preset) =>
+              setActivityPanel({ mode: 'create', preset: buildPresetForContact(preset) })
+            }
+            onCustomLog={() =>
+              setActivityPanel({
+                mode: 'create',
+                preset: buildPresetForContact({
+                  type: 'note',
+                  notes: '',
+                  followup_at: '',
+                  decision_maker_id: '',
+                }),
+              })
+            }
           />
           <div>
             <p className="text-label uppercase text-text-muted mb-2">
@@ -306,7 +466,9 @@ export function BusinessDetailPanel({
         activity={activityPanel?.activity}
         preset={activityPanel?.preset}
         decisionMakers={detail?.decisionMakers ?? []}
+        activities={detail?.activities ?? []}
         onClose={() => setActivityPanel(null)}
+        onSaved={onActivityLogged}
         onEdit={() => setActivityPanel((p) => (p ? { ...p, mode: 'edit' } : p))}
         onDeleteRequest={(a) => setActivityDelete(a)}
       />

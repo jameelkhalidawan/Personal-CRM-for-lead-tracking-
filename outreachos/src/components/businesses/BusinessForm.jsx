@@ -3,6 +3,7 @@ import {
   BUSINESS_STATUSES,
 } from '../../constants/business';
 import { fromDatetimeLocalValue, toDatetimeLocalValue } from '../../lib/format';
+import { getLeadReadiness } from '../../lib/leadReadiness';
 import { Input, Select, Textarea } from '../ui/Input';
 import { Button } from '../ui/Button';
 
@@ -48,6 +49,15 @@ export function BusinessForm({
 }) {
   const set = (field, value) => onChange({ ...form, [field]: value });
 
+  const readiness = getLeadReadiness(
+    {
+      niche: form.niche,
+      phone_number: form.phone_number,
+      business_email: form.business_email,
+    },
+    [],
+  );
+
   const toggleService = (serviceId) => {
     const ids = form.serviceIds.includes(serviceId)
       ? form.serviceIds.filter((id) => id !== serviceId)
@@ -63,6 +73,11 @@ export function BusinessForm({
       }}
       className="space-y-4 pb-24"
     >
+      {!readiness.ready && (
+        <div className="rounded-lg border border-priority-high/30 bg-priority-high/10 px-3 py-2 text-small text-priority-high">
+          For outreach: {readiness.issues.join(' · ')}. Add a contact after saving if needed.
+        </div>
+      )}
       <Input
         label="Business name"
         required

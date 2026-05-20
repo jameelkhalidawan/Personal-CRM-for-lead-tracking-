@@ -1,6 +1,6 @@
 import { Check, Circle, Sparkles } from 'lucide-react';
-import { OUTCOME_QUICK_ACTIONS } from '../../constants/activity';
-import { getPlaybookState, presetFromStep } from '../../lib/outreachSequence';
+import { CALL_OUTCOME_ACTIONS, OUTCOME_QUICK_ACTIONS } from '../../constants/activity';
+import { getPlaybookState, presetFromStep, presetFromCallOutcome } from '../../lib/outreachSequence';
 import { cn } from '../../lib/cn';
 import { Button } from '../ui/Button';
 import { ActivityTypeBadge } from './ActivityTypeBadge';
@@ -12,6 +12,7 @@ export function OutreachPlaybook({
   saving,
   onLogStep,
   onLogOutcome,
+  onLogCallOutcome,
   onCustomLog,
 }) {
   const state = getPlaybookState(business, decisionMakers, activities);
@@ -113,6 +114,27 @@ export function OutreachPlaybook({
           </li>
         ))}
       </ul>
+
+      {(channels.phone || current?.channel === 'phone') && (
+        <div>
+          <p className="text-label uppercase text-text-muted mb-2">Call results</p>
+          <div className="flex flex-wrap gap-2">
+            {CALL_OUTCOME_ACTIONS.map((action) => (
+              <Button
+                key={action.id}
+                variant="secondary"
+                size="sm"
+                loading={saving}
+                onClick={() =>
+                  onLogCallOutcome?.(presetFromCallOutcome(action, business, decisionMakers), action)
+                }
+              >
+                {action.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div>
         <p className="text-label uppercase text-text-muted mb-2">Quick outcomes</p>

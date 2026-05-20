@@ -20,6 +20,7 @@ export const EMPTY_DECISION_MAKER_FORM = {
   notes: '',
   problem_notes: '',
   preferred_contact: '',
+  is_primary: false,
   last_contacted_at: '',
   next_followup_at: '',
 };

@@ -6,23 +6,40 @@ const DM_SELECT = `
   businesses ( id, business_name )
 `;
 
-function buildPayload(form, businessId) {
+function str(field) {
+  return String(field ?? '').trim();
+}
+
+/** Core columns always present in schema */
+function buildCorePayload(form, businessId) {
   return {
     business_id: businessId,
-    name: form.name.trim(),
-    role: form.role.trim() || null,
-    email: form.email.trim() || null,
-    phone_number: form.phone_number.trim() || null,
-    linkedin_url: form.linkedin_url.trim() || null,
-    instagram_handle: form.instagram_handle.trim() || null,
-    facebook_url: form.facebook_url.trim() || null,
-    twitter_handle: form.twitter_handle.trim() || null,
-    notes: form.notes.trim() || null,
-    problem_notes: form.problem_notes.trim() || null,
+    name: str(form.name),
+    role: str(form.role) || null,
+    email: str(form.email) || null,
+    phone_number: str(form.phone_number) || null,
+    linkedin_url: str(form.linkedin_url) || null,
+    instagram_handle: str(form.instagram_handle) || null,
+    facebook_url: str(form.facebook_url) || null,
+    twitter_handle: str(form.twitter_handle) || null,
+    notes: str(form.notes) || null,
+    problem_notes: str(form.problem_notes) || null,
     preferred_contact: form.preferred_contact || null,
     last_contacted_at: fromDatetimeLocalValue(form.last_contacted_at),
     next_followup_at: fromDatetimeLocalValue(form.next_followup_at),
   };
+}
+
+function buildPayload(form, businessId) {
+  return {
+    ...buildCorePayload(form, businessId),
+    is_primary: Boolean(form.is_primary),
+  };
+}
+
+function isMissingPrimaryColumnError(err) {
+  const msg = String(err?.message ?? err ?? '').toLowerCase();
+  return msg.includes('is_primary') || msg.includes('schema cache');
 }
 
 export function decisionMakerToForm(dm) {
@@ -39,6 +56,7 @@ export function decisionMakerToForm(dm) {
     notes: dm.notes ?? '',
     problem_notes: dm.problem_notes ?? '',
     preferred_contact: dm.preferred_contact ?? '',
+    is_primary: Boolean(dm.is_primary),
     last_contacted_at: toDatetimeLocalValue(dm.last_contacted_at),
     next_followup_at: toDatetimeLocalValue(dm.next_followup_at),
   };
@@ -106,29 +124,71 @@ export async function fetchDecisionMaker(id) {
   return mapDecisionMakerRow(data);
 }
 
+async function syncPrimaryContact(businessId, contactId) {
+  const supabase = getSupabase();
+  const { error: clearError } = await supabase
+    .from('decision_makers')
+    .update({ is_primary: false })
+    .eq('business_id', businessId)
+    .neq('id', contactId);
+  if (clearError && !isMissingPrimaryColumnError(clearError)) throw clearError;
+
+  const { error: setError } = await supabase
+    .from('decision_makers')
+    .update({ is_primary: true })
+    .eq('id', contactId);
+  if (setError && !isMissingPrimaryColumnError(setError)) throw setError;
+}
+
 export async function createDecisionMaker(businessId, form) {
   const supabase = getSupabase();
-  const { data, error } = await supabase
+  let result = await supabase
     .from('decision_makers')
-    .insert(buildPayload(form, businessId))
+    .insert(buildCorePayload(form, businessId))
     .select('*')
     .single();
 
-  if (error) throw error;
+  if (result.error) throw result.error;
+
+  let data = result.data;
+
+  if (form.is_primary && data?.id) {
+    try {
+      await syncPrimaryContact(businessId, data.id);
+      const refreshed = await supabase
+        .from('decision_makers')
+        .select('*')
+        .eq('id', data.id)
+        .single();
+      if (!refreshed.error && refreshed.data) data = refreshed.data;
+    } catch (err) {
+      if (!isMissingPrimaryColumnError(err)) throw err;
+    }
+  }
+
   return data;
 }
 
 export async function updateDecisionMaker(id, businessId, form) {
   const supabase = getSupabase();
-  const { data, error } = await supabase
+  const result = await supabase
     .from('decision_makers')
-    .update(buildPayload(form, businessId))
+    .update(buildCorePayload(form, businessId))
     .eq('id', id)
     .select('*')
     .single();
 
-  if (error) throw error;
-  return data;
+  if (result.error) throw result.error;
+
+  if (form.is_primary && id) {
+    try {
+      await syncPrimaryContact(businessId, id);
+    } catch (err) {
+      if (!isMissingPrimaryColumnError(err)) throw err;
+    }
+  }
+
+  return result.data;
 }
 
 export async function deleteDecisionMaker(id) {

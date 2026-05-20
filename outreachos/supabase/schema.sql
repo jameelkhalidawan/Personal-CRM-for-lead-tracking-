@@ -77,6 +77,7 @@ CREATE TABLE IF NOT EXISTS public.decision_makers (
     CHECK (preferred_contact IS NULL OR preferred_contact IN (
       'email', 'phone', 'linkedin', 'whatsapp', 'instagram', 'twitter'
     )),
+  is_primary              boolean NOT NULL DEFAULT false,
   last_contacted_at       timestamptz,
   next_followup_at        timestamptz
 );

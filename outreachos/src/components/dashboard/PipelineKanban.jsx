@@ -3,10 +3,13 @@ import { BUSINESS_STATUSES } from '../../constants/business';
 import { formatCurrency, formatDate } from '../../lib/format';
 import { groupBusinessesByStatus } from '../../lib/dashboardStats';
 import { PriorityBadge } from '../ui/Badge';
+import { NextStepLabel } from '../businesses/NextStepLabel';
+import { LeadIdentity } from '../businesses/LeadIdentity';
+import { pickPrimaryContact } from '../../lib/contactPick';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { cn } from '../../lib/cn';
 
-function KanbanCard({ business, onOpen }) {
+function KanbanCard({ business, insight, decisionMaker, onOpen }) {
   return (
     <div
       draggable
@@ -22,12 +25,11 @@ function KanbanCard({ business, onOpen }) {
         if (e.key === 'Enter') onOpen(business.id);
       }}
     >
-      <p className="text-body font-medium text-text-primary line-clamp-2">
-        {business.business_name}
-      </p>
-      {business.niche && (
-        <p className="text-small text-text-muted mt-1 line-clamp-1">{business.niche}</p>
-      )}
+      <LeadIdentity
+        decisionMaker={decisionMaker}
+        business={business}
+        size="sm"
+      />
       <div className="flex flex-wrap items-center gap-2 mt-2">
         <PriorityBadge priority={business.priority} />
         {business.estimated_value != null && business.estimated_value !== '' && (
@@ -36,8 +38,13 @@ function KanbanCard({ business, onOpen }) {
           </span>
         )}
       </div>
+      {insight?.nextAction && (
+        <div className="mt-2">
+          <NextStepLabel nextAction={insight.nextAction} compact />
+        </div>
+      )}
       {business.next_followup_at && (
-        <p className="text-xs text-text-muted mt-2">
+        <p className="text-xs text-text-muted mt-1">
           Follow-up: {formatDate(business.next_followup_at)}
         </p>
       )}
@@ -45,7 +52,18 @@ function KanbanCard({ business, onOpen }) {
   );
 }
 
-function KanbanColumn({ status, label, businesses, dragOver, onDragOver, onDragLeave, onDrop, onOpen }) {
+function KanbanColumn({
+  status,
+  label,
+  businesses,
+  insightsByBusinessId,
+  dmsByBusiness,
+  dragOver,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+  onOpen,
+}) {
   return (
     <div
       className={cn(
@@ -64,14 +82,27 @@ function KanbanColumn({ status, label, businesses, dragOver, onDragOver, onDragL
       </div>
       <div className="flex-1 overflow-y-auto p-2 space-y-2">
         {businesses.map((b) => (
-          <KanbanCard key={b.id} business={b} onOpen={onOpen} />
+          <KanbanCard
+            key={b.id}
+            business={b}
+            insight={insightsByBusinessId?.[b.id]}
+            decisionMaker={pickPrimaryContact(dmsByBusiness?.[b.id], b)}
+            onOpen={onOpen}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-export function PipelineKanban({ businesses, loading, onStatusChange, onOpenBusiness }) {
+export function PipelineKanban({
+  businesses,
+  loading,
+  insightsByBusinessId = {},
+  dmsByBusiness = {},
+  onStatusChange,
+  onOpenBusiness,
+}) {
   const [dragOverStatus, setDragOverStatus] = useState(null);
   const groups = groupBusinessesByStatus(businesses);
 
@@ -107,6 +138,8 @@ export function PipelineKanban({ businesses, loading, onStatusChange, onOpenBusi
             status={value}
             label={label}
             businesses={groups[value] ?? []}
+            insightsByBusinessId={insightsByBusinessId}
+            dmsByBusiness={dmsByBusiness}
             dragOver={dragOverStatus === value}
             onDragOver={(e) => {
               e.preventDefault();

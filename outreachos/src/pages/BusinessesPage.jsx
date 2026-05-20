@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Building2, Plus } from 'lucide-react';
 import { PageHeader } from '../components/layout/PageHeader';
@@ -14,6 +14,10 @@ import { Modal } from '../components/ui/Modal';
 import { TableSkeleton } from '../components/ui/TableSkeleton';
 import { useDebounce } from '../hooks/useDebounce';
 import { useBusinessStore } from '../stores/businessStore';
+import { useActivityStore } from '../stores/activityStore';
+import { fetchDecisionMakersForBusinesses } from '../lib/decisionMakerApi';
+import { groupActivitiesByBusiness } from '../lib/followUpInsight';
+import { buildInsightsByBusinessId } from '../lib/insightsMap';
 
 export function BusinessesPage() {
   const location = useLocation();
@@ -41,6 +45,8 @@ export function BusinessesPage() {
   const [panel, setPanel] = useState(null);
   // panel: null | { type: 'view'|'edit'|'create', id?: string }
   const [deleteId, setDeleteId] = useState(null);
+  const [dmsByBusiness, setDmsByBusiness] = useState({});
+  const { items: activities, loadAll: loadActivities } = useActivityStore();
 
   useEffect(() => {
     setSearch(debouncedSearch);
@@ -49,9 +55,31 @@ export function BusinessesPage() {
   useEffect(() => {
     loadServices();
     loadBusinesses();
+    loadActivities();
     subscribeRealtime();
     return () => unsubscribeRealtime();
-  }, [loadServices, loadBusinesses, subscribeRealtime, unsubscribeRealtime]);
+  }, [loadServices, loadBusinesses, loadActivities, subscribeRealtime, unsubscribeRealtime]);
+
+  const businesses = getFilteredBusinesses();
+  const businessIds = useMemo(() => businesses.map((b) => b.id), [businesses]);
+
+  useEffect(() => {
+    if (!businessIds.length) {
+      setDmsByBusiness({});
+      return;
+    }
+    fetchDecisionMakersForBusinesses(businessIds).then(setDmsByBusiness).catch(() => {});
+  }, [businessIds.join(',')]);
+
+  const activitiesByBusiness = useMemo(
+    () => groupActivitiesByBusiness(activities),
+    [activities],
+  );
+
+  const insightsByBusinessId = useMemo(
+    () => buildInsightsByBusinessId(businesses, activitiesByBusiness, dmsByBusiness),
+    [businesses, activitiesByBusiness, dmsByBusiness],
+  );
 
   const openView = (id) => {
     loadBusinessDetail(id);
@@ -67,7 +95,6 @@ export function BusinessesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run when navigated with state
   }, [location.state?.openBusinessId]);
 
-  const businesses = getFilteredBusinesses();
   const hasFilters =
     localSearch.trim() ||
     filterStatus ||
@@ -124,7 +151,12 @@ export function BusinessesPage() {
           onAction={() => setPanel({ type: 'create' })}
         />
       ) : (
-        <BusinessTable businesses={businesses} onRowClick={openView} />
+        <BusinessTable
+          businesses={businesses}
+          insightsByBusinessId={insightsByBusinessId}
+          dmsByBusinessId={dmsByBusiness}
+          onRowClick={openView}
+        />
       )}
 
       <BusinessCreatePanel

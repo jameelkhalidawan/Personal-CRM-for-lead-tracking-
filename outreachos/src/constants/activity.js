@@ -29,6 +29,40 @@ export const ACTIVITY_TYPE_LABELS = Object.fromEntries(
   ACTIVITY_TYPES.map((t) => [t.value, t.label]),
 );
 
+/** One-click call results (#4) */
+export const CALL_OUTCOME_ACTIONS = [
+  {
+    id: 'no_answer',
+    label: 'No answer',
+    notes: 'Called — no answer.',
+    followupDays: 2,
+  },
+  {
+    id: 'voicemail',
+    label: 'Voicemail',
+    notes: 'Left voicemail.',
+    followupDays: 3,
+  },
+  {
+    id: 'wrong_number',
+    label: 'Wrong number',
+    notes: 'Wrong number / invalid contact.',
+    followupDays: 0,
+  },
+  {
+    id: 'spoke_interested',
+    label: 'Spoke — interested',
+    notes: 'Spoke with contact — showed interest. Follow up soon.',
+    followupDays: 2,
+  },
+  {
+    id: 'spoke_not_now',
+    label: 'Spoke — not now',
+    notes: 'Spoke with contact — not interested right now.',
+    followupDays: 14,
+  },
+];
+
 export const OUTCOME_QUICK_ACTIONS = [
   {
     type: 'interested',

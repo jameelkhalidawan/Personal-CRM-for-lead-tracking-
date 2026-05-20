@@ -6,6 +6,8 @@ import {
   renderTemplate,
 } from '../../lib/templateRender';
 import { useEmailTemplateStore } from '../../stores/emailTemplateStore';
+import { usePreferencesStore } from '../../stores/preferencesStore';
+import { filterTemplatesByContext } from '../../lib/templateCategories';
 import { Button } from '../ui/Button';
 import { Select } from '../ui/Input';
 
@@ -17,7 +19,16 @@ export function EmailOutreachSection({
   user,
 }) {
   const { templates, loadAll } = useEmailTemplateStore();
+  const serviceTemplateCategories = usePreferencesStore(
+    (s) => s.serviceTemplateCategories ?? {},
+  );
   const [selectedId, setSelectedId] = useState(form.template_id ?? '');
+
+  const sortedTemplates = filterTemplatesByContext(
+    templates,
+    business,
+    serviceTemplateCategories,
+  );
 
   useEffect(() => {
     loadAll();
@@ -47,7 +58,7 @@ export function EmailOutreachSection({
     ],
   );
 
-  const selectedTemplate = templates.find((t) => t.id === selectedId);
+  const selectedTemplate = sortedTemplates.find((t) => t.id === selectedId);
 
   const renderedSubject = selectedTemplate
     ? renderTemplate(selectedTemplate.subject, context)
@@ -67,7 +78,7 @@ export function EmailOutreachSection({
 
   useEffect(() => {
     if (!selectedId) return;
-    const t = templates.find((x) => x.id === selectedId);
+    const t = sortedTemplates.find((x) => x.id === selectedId);
     if (!t) return;
     const subject = renderTemplate(t.subject, context);
     const body = renderTemplate(t.body, context);
@@ -80,7 +91,7 @@ export function EmailOutreachSection({
       applyRendered('', form.email_subject, form.email_body);
       return;
     }
-    const t = templates.find((x) => x.id === id);
+    const t = sortedTemplates.find((x) => x.id === id);
     if (!t) return;
     const subject = renderTemplate(t.subject, context);
     const body = renderTemplate(t.body, context);
@@ -107,7 +118,7 @@ export function EmailOutreachSection({
         onChange={(e) => handleSelectTemplate(e.target.value)}
       >
         <option value="">— Select a template —</option>
-        {templates.map((t) => (
+        {sortedTemplates.map((t) => (
           <option key={t.id} value={t.id}>
             {t.name}
             {t.category ? ` (${t.category})` : ''}

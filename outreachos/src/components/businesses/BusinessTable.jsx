@@ -1,7 +1,16 @@
 import { PriorityBadge, StatusBadge } from '../ui/Badge';
 import { formatCurrency, formatDate } from '../../lib/format';
+import { NextStepLabel } from './NextStepLabel';
+import { LeadIdentity } from './LeadIdentity';
+import { pickPrimaryContact } from '../../lib/contactPick';
+import { countContactsAtBusiness } from '../../lib/leadModel';
 
-export function BusinessTable({ businesses, onRowClick }) {
+export function BusinessTable({
+  businesses,
+  insightsByBusinessId = {},
+  dmsByBusinessId = {},
+  onRowClick,
+}) {
   if (businesses.length === 0) {
     return null;
   }
@@ -12,7 +21,10 @@ export function BusinessTable({ businesses, onRowClick }) {
         <thead>
           <tr className="border-b border-border bg-background-elevated/50">
             <th className="px-4 py-3 text-label uppercase text-text-muted font-medium">
-              Name
+              Contact / company
+            </th>
+            <th className="px-4 py-3 text-label uppercase text-text-muted font-medium">
+              Next step
             </th>
             <th className="px-4 py-3 text-label uppercase text-text-muted font-medium">
               Niche
@@ -44,8 +56,28 @@ export function BusinessTable({ businesses, onRowClick }) {
               onClick={() => onRowClick(b.id)}
               className="border-b border-border last:border-0 cursor-pointer transition-colors hover:bg-background-elevated/40"
             >
-              <td className="px-4 py-3 font-medium text-text-primary">
-                {b.business_name}
+              <td className="px-4 py-3">
+                <LeadIdentity
+                  decisionMaker={pickPrimaryContact(dmsByBusinessId[b.id], b)}
+                  business={b}
+                  size="sm"
+                />
+                {countContactsAtBusiness(dmsByBusinessId[b.id]) > 1 && (
+                  <p className="text-[10px] text-text-muted mt-0.5">
+                    +{countContactsAtBusiness(dmsByBusinessId[b.id]) - 1} more contact
+                    {countContactsAtBusiness(dmsByBusinessId[b.id]) - 1 > 1 ? 's' : ''}
+                  </p>
+                )}
+              </td>
+              <td className="px-4 py-3 max-w-[200px]">
+                {insightsByBusinessId[b.id] ? (
+                  <NextStepLabel
+                    nextAction={insightsByBusinessId[b.id].nextAction}
+                    compact
+                  />
+                ) : (
+                  <span className="text-text-muted text-small">—</span>
+                )}
               </td>
               <td className="px-4 py-3 text-text-secondary">{b.niche || '—'}</td>
               <td className="px-4 py-3">

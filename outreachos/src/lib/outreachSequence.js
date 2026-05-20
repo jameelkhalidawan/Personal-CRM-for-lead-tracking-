@@ -1,4 +1,7 @@
 import { OUTCOME_ACTIVITY_TYPES } from '../constants/activity';
+import { pickContactForChannel } from './contactPick';
+
+export { pickContactForChannel };
 
 const PHONE_STEPS = [
   {
@@ -124,17 +127,14 @@ export function addDaysDatetimeLocal(days) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-/** Pick best contact for channel (DM with phone/email, else business-level only) */
-export function pickContactForChannel(channel, business, decisionMakers = []) {
-  if (channel === 'phone') {
-    const dm = decisionMakers.find((d) => hasValue(d.phone_number));
-    return dm?.id ?? '';
-  }
-  if (channel === 'email') {
-    const dm = decisionMakers.find((d) => hasValue(d.email));
-    return dm?.id ?? '';
-  }
-  return '';
+export function presetFromCallOutcome(action, business, decisionMakers) {
+  return {
+    type: 'call',
+    notes: action.notes ?? '',
+    followup_at: action.followupDays ? addDaysDatetimeLocal(action.followupDays) : '',
+    decision_maker_id: pickContactForChannel('phone', business, decisionMakers),
+    step: { label: action.label },
+  };
 }
 
 export function presetFromOutcome(action) {

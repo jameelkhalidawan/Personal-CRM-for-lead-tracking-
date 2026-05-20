@@ -3,8 +3,10 @@ import { formatDateTime } from '../../lib/format';
 import { PriorityBadge, StatusBadge } from '../ui/Badge';
 import { Card, CardBody } from '../ui/Card';
 
+import { LeadIdentity } from '../businesses/LeadIdentity';
+
 function FollowUpCard({ item, variant, onOpen, rich = false }) {
-  const { business, insight } = item;
+  const { business, insight, decisionMaker } = item;
   const border =
     variant === 'overdue'
       ? 'border-priority-high/50'
@@ -21,14 +23,18 @@ function FollowUpCard({ item, variant, onOpen, rich = false }) {
       className={`shrink-0 ${width} rounded-lg border bg-background-card p-3 text-left transition-colors hover:bg-background-elevated/60 ${border}`}
     >
       <div className="flex items-start justify-between gap-2">
-        <p className="text-body font-medium text-text-primary line-clamp-2 flex-1">
-          {business.business_name}
-        </p>
+        <LeadIdentity
+          decisionMaker={decisionMaker}
+          business={business}
+          className="flex-1"
+        />
         <StatusBadge status={business.status} className="shrink-0 scale-90" />
       </div>
 
-      {business.niche && (
-        <p className="text-small text-text-muted mt-1 truncate">{business.niche}</p>
+      {item.contactTotal > 1 && (
+        <p className="text-[10px] text-text-muted mt-1">
+          Contact {item.contactIndex} of {item.contactTotal} at {business.business_name}
+        </p>
       )}
 
       {rich && (

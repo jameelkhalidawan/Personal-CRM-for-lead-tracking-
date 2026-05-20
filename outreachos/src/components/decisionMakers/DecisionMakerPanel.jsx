@@ -30,7 +30,7 @@ export function DecisionMakerPanel({
   onDeleteRequest,
   onOpenBusiness,
 }) {
-  const { saving, create, update } = useDecisionMakerStore();
+  const { saving, create, update, error, clearError } = useDecisionMakerStore();
   const [form, setForm] = useState({ ...EMPTY_DECISION_MAKER_FORM });
   const [dirty, setDirty] = useState(false);
   const isEdit = mode === 'edit';
@@ -39,6 +39,7 @@ export function DecisionMakerPanel({
 
   useEffect(() => {
     if (!open) return;
+    clearError();
     if (isCreate) {
       setForm({ ...EMPTY_DECISION_MAKER_FORM });
       setDirty(false);
@@ -46,7 +47,7 @@ export function DecisionMakerPanel({
       setForm(decisionMakerToForm(decisionMaker) ?? { ...EMPTY_DECISION_MAKER_FORM });
       setDirty(false);
     }
-  }, [open, mode, decisionMaker, isCreate]);
+  }, [open, mode, decisionMaker, isCreate, clearError]);
 
   const handleClose = () => {
     if ((isCreate || isEdit) && dirty) {
@@ -59,7 +60,11 @@ export function DecisionMakerPanel({
   };
 
   const handleSave = async () => {
-    if (!form.name.trim() || !businessId) return;
+    if (!form.name.trim()) return;
+    if (!businessId) {
+      window.alert('Open this contact from a business first — a company link is required.');
+      return;
+    }
     const result = isCreate
       ? await create(businessId, form)
       : await update(decisionMaker.id, businessId, form);
@@ -76,9 +81,15 @@ export function DecisionMakerPanel({
       : decisionMaker?.name ?? 'Decision maker';
 
   return (
-    <SlidePanel open={open} onClose={handleClose} title={title} zClass="z-[60]">
+    <SlidePanel open={open} onClose={handleClose} title={title} zClass="z-[70]">
       {businessName && (
         <p className="text-small text-text-muted -mt-2 mb-4">at {businessName}</p>
+      )}
+
+      {error && (
+        <div className="mb-4 rounded-lg border border-priority-high/40 bg-priority-high/10 px-4 py-3 text-small text-priority-high">
+          {error}
+        </div>
       )}
 
       {isCreate || isEdit ? (

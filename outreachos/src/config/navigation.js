@@ -2,6 +2,7 @@ import {
   Activity,
   Building2,
   LayoutDashboard,
+  ListOrdered,
   Mail,
   Settings,
   Users,
@@ -9,6 +10,7 @@ import {
 
 export const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/work-queue', label: 'Work queue', icon: ListOrdered },
   { to: '/businesses', label: 'Businesses', icon: Building2 },
   { to: '/decision-makers', label: 'Decision Makers', icon: Users },
   { to: '/activities', label: 'Activities', icon: Activity },
