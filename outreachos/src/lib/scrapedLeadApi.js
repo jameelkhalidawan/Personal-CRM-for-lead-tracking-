@@ -15,6 +15,8 @@ export const PROCESSING_STATUSES = [
   'discard',
 ];
 
+export const CAPTURED_STATUSES = ['captured_processing', 'captured_done'];
+
 export const NEXT_STATUS = {
   fresh: 'followup_1',
   followup_1: 'followup_2',
