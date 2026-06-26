@@ -5,8 +5,8 @@
 **Project:** OutreachOS AI Sales CRM Desktop App  
 **Add-on:** Lead Scraping Pipeline  
 **Last updated:** 2026-06-26  
-**Current phase:** Phase 14 complete - waiting for user self-test  
-**Current work:** Scrape Leads UI is implemented; waiting for the user to test it and reply `GO` to start Phase 15.  
+**Current phase:** Phase 15 complete - waiting for user self-test  
+**Current work:** Scrape Leads Processing UI is implemented; waiting for the user to test it and reply `GO` to start Phase 16.  
 **Workflow rule:** Complete one phase, stop with a self-test checklist, wait for user to reply `GO`, then continue.
 
 ---
@@ -37,7 +37,7 @@ Captured / Processing -> Mark Done -> Captured / Done
 | 12 | Database schema | Complete - awaiting user test | Migration created for `scrape_jobs`, `scraped_leads`, and `scraped_lead_notes`; test guide added. |
 | 13 | Scraper engine | Complete - awaiting user review | Puppeteer worker, Electron IPC bridge, Supabase job/lead writes, progress events. |
 | 14 | Scrape Leads UI | Complete - awaiting user test | Sidebar/page, search form with max leads, live progress counters, job history, realtime job refresh. |
-| 15 | Scrape Leads Processing UI | Not started | Fresh/Follow-up/Discard pipeline with required notes. |
+| 15 | Scrape Leads Processing UI | Complete - awaiting user test | Fresh/Follow-up/Discard pipeline with required notes, note history, capture action, realtime refresh. |
 | 16 | Captured Leads UI | Not started | Processing/Done pipeline with note history. |
 | 17 | End-to-end integration + polish | Not started | Full lifecycle tests, realtime, visual polish. |
 
@@ -49,16 +49,21 @@ Captured / Processing -> Mark Done -> Captured / Done
 - `docs/PHASE12_LEAD_SCRAPING_SCHEMA.md` - Phase 12 setup and self-test guide.
 - `docs/PHASE13_SCRAPER_ENGINE.md` - Phase 13 implementation and self-test guide.
 - `docs/PHASE14_SCRAPE_LEADS_UI.md` - Phase 14 implementation and self-test guide.
+- `docs/PHASE15_SCRAPE_LEADS_PROCESSING.md` - Phase 15 implementation and self-test guide.
 - `electron/googleMapsScraper.cjs` - Puppeteer Google Maps scraping engine.
 - `electron/googleMapsScraper.cjs` - added Chrome executable fallback for Puppeteer browser cache/system Chrome.
 - `electron/scrapeWorker.cjs` - background worker that creates jobs, inserts deduped leads, and reports progress.
 - `src/lib/scrapeLeadApi.js` - renderer helper for starting scrapes and subscribing to progress.
 - `src/lib/scrapeJobApi.js` - Supabase reads for scrape job history.
+- `src/lib/scrapedLeadApi.js` - Supabase API helpers for scraped leads, notes, and transitions.
 - `src/stores/scrapeJobStore.js` - scrape form/job/progress state management.
+- `src/stores/scrapedLeadStore.js` - processing pipeline state, notes, actions, and realtime subscriptions.
 - `src/pages/ScrapeLeadsPage.jsx` - Scrape Leads UI page.
 - `src/pages/ScrapeLeadsPage.jsx` - added max leads control and clearer live scrape counters.
+- `src/pages/ScrapeLeadsProcessingPage.jsx` - Fresh/Follow-up/Discard processing UI.
 - `src/config/navigation.js` - added Scrape Leads sidebar item.
-- `src/routes/AppRouter.jsx` - added `/scrape-leads` route.
+- `src/config/navigation.js` - added Scrape Processing sidebar item.
+- `src/routes/AppRouter.jsx` - added `/scrape-leads` and `/scrape-leads-processing` routes.
 - `supabase/migrations/20260626_lead_scraping_pipeline.sql` - new Supabase schema migration.
 - `electron/main.cjs` - registered scraper IPC and worker lifecycle.
 - `electron/main.cjs` - hardened dev startup with workspace-local user data, GPU fallback switches, and startup logs.
@@ -77,7 +82,7 @@ Captured / Processing -> Mark Done -> Captured / Done
 ## Known Issues / TODOs
 
 - User still needs to run/confirm the Phase 12 migration in Supabase SQL Editor before live scraping will save rows.
-- Phase 15 still needs to add Scrape Leads Processing; Phase 14 `View results` button is disabled until that route exists.
+- Phase 16 still needs to add Captured Leads UI; captured leads move to `captured_processing` but have no dedicated page until Phase 16.
 - Direct Google Maps scraping can be blocked or CAPTCHA'd; Phase 13 records failures in `scrape_jobs`.
 - `npm run lint` fails due to pre-existing lint issues across the app, unrelated to the new scraper files.
 - If Electron opens then immediately closes, check for Vite watcher errors. Dev user data now lives outside the project to avoid locked-file crashes.
@@ -91,11 +96,11 @@ Captured / Processing -> Mark Done -> Captured / Done
 === OUTREACHOS CONTEXT SNAPSHOT ===
 Project: OutreachOS AI Sales CRM Desktop App
 Add-on: Lead Scraping Pipeline (Phases 12-17)
-Current phase completed: 14 locally, pending user self-test
+Current phase completed: 15 locally, pending user self-test
 Current phase in progress: none - waiting for GO
-Next phase: 15 after user tests Phase 14 and replies GO
-Files created/modified so far: ADDON_PROGRESS.md, docs/PHASE12_LEAD_SCRAPING_SCHEMA.md, docs/PHASE13_SCRAPER_ENGINE.md, docs/PHASE14_SCRAPE_LEADS_UI.md, supabase/migrations/20260626_lead_scraping_pipeline.sql, electron/googleMapsScraper.cjs, electron/scrapeWorker.cjs, electron/main.cjs, electron/preload.cjs, src/global.d.ts, src/lib/scrapeLeadApi.js, src/lib/scrapeJobApi.js, src/stores/scrapeJobStore.js, src/pages/ScrapeLeadsPage.jsx, src/config/navigation.js, src/routes/AppRouter.jsx, package.json, package-lock.json, .gitignore, vite.config.js, docs/README.md, PROGRESS.md
-Known issues / TODOs: Phase 15 Processing UI is needed for View results; direct Google Maps scraping can be blocked; npm lint has pre-existing failures.
-Last thing done: Fixed Puppeteer Chrome discovery by using the normal browser cache and adding a Windows Chrome fallback.
+Next phase: 16 after user tests Phase 15 and replies GO
+Files created/modified so far: ADDON_PROGRESS.md, docs/PHASE12_LEAD_SCRAPING_SCHEMA.md, docs/PHASE13_SCRAPER_ENGINE.md, docs/PHASE14_SCRAPE_LEADS_UI.md, docs/PHASE15_SCRAPE_LEADS_PROCESSING.md, supabase/migrations/20260626_lead_scraping_pipeline.sql, electron/googleMapsScraper.cjs, electron/scrapeWorker.cjs, electron/main.cjs, electron/preload.cjs, src/global.d.ts, src/lib/scrapeLeadApi.js, src/lib/scrapeJobApi.js, src/lib/scrapedLeadApi.js, src/stores/scrapeJobStore.js, src/stores/scrapedLeadStore.js, src/pages/ScrapeLeadsPage.jsx, src/pages/ScrapeLeadsProcessingPage.jsx, src/config/navigation.js, src/routes/AppRouter.jsx, package.json, package-lock.json, .gitignore, vite.config.js, docs/README.md, PROGRESS.md
+Known issues / TODOs: Phase 16 Captured Leads UI is needed for captured_processing/captured_done; direct Google Maps scraping can be blocked; npm lint has pre-existing failures.
+Last thing done: Implemented the Scrape Leads Processing page with required-note transitions and note history.
 ===================================
 ```

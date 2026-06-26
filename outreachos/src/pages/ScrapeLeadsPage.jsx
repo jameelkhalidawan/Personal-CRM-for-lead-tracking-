@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ExternalLink, History, Radar, Search } from 'lucide-react';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Button } from '../components/ui/Button';
@@ -73,6 +74,7 @@ function ProgressLine({ progress }) {
 }
 
 export function ScrapeLeadsPage() {
+  const navigate = useNavigate();
   const {
     jobs,
     loading,
@@ -324,8 +326,7 @@ export function ScrapeLeadsPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              disabled
-                              title="Scrape Leads Processing is added in Phase 15."
+                              onClick={() => navigate('/scrape-leads-processing')}
                             >
                               View results
                               <ExternalLink className="h-4 w-4" />

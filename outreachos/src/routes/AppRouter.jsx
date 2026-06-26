@@ -13,6 +13,7 @@ import { SettingsPage } from '../pages/SettingsPage';
 import { WorkQueuePage } from '../pages/WorkQueuePage';
 import { AnalyticsPage } from '../pages/AnalyticsPage';
 import { ScrapeLeadsPage } from '../pages/ScrapeLeadsPage';
+import { ScrapeLeadsProcessingPage } from '../pages/ScrapeLeadsProcessingPage';
 
 export function AppRouter() {
   useReminderScheduler();
@@ -27,6 +28,7 @@ export function AppRouter() {
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="work-queue" element={<WorkQueuePage />} />
           <Route path="scrape-leads" element={<ScrapeLeadsPage />} />
+          <Route path="scrape-leads-processing" element={<ScrapeLeadsProcessingPage />} />
           <Route path="businesses" element={<BusinessesPage />} />
           <Route path="decision-makers" element={<DecisionMakersPage />} />
           <Route path="activities" element={<ActivitiesPage />} />

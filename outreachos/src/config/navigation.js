@@ -8,6 +8,7 @@ import {
   Phone,
   Radar,
   Settings,
+  Workflow,
   Users,
 } from 'lucide-react';
 
@@ -16,6 +17,7 @@ export const NAV_ITEMS = [
   { to: '/analytics', label: 'Analytics', icon: BarChart3 },
   { to: '/work-queue', label: 'Work queue', icon: ListOrdered },
   { to: '/scrape-leads', label: 'Scrape Leads', icon: Radar },
+  { to: '/scrape-leads-processing', label: 'Scrape Processing', icon: Workflow },
   { to: '/businesses', label: 'Businesses', icon: Building2 },
   { to: '/decision-makers', label: 'Decision Makers', icon: Users },
   { to: '/activities', label: 'Activities', icon: Activity },
