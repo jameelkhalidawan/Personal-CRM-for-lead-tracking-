@@ -34,6 +34,7 @@
 - Dashboard metrics + outreach channel on activities
 - Call script templates + polish pass
 - Migrations: `20260519`–`20260522`
+- Lead Scraping Pipeline add-on started as Phases 12-17. See [ADDON_PROGRESS.md](./ADDON_PROGRESS.md).
 
 ---
 

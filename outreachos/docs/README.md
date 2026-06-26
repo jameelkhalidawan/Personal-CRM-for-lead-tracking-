@@ -27,7 +27,15 @@ Built in 11 phases. Use these when working on or verifying a specific area.
 | [PHASE10_SETTINGS.md](./PHASE10_SETTINGS.md) | 10 | Templates + settings |
 | [PHASE11_DISTRIBUTION.md](./PHASE11_DISTRIBUTION.md) | 11 | Installer + distribution |
 
-**Also:** [../PHASES.md](../PHASES.md) (master plan) · [../PROGRESS.md](../PROGRESS.md) (status)
+**Also:** [../PHASES.md](../PHASES.md) (master plan) · [../PROGRESS.md](../PROGRESS.md) (status) · [../ADDON_PROGRESS.md](../ADDON_PROGRESS.md) (lead scraping add-on status)
+
+## Add-on phase guides
+
+Lead Scraping Pipeline phases continue the original build from Phase 12 onward.
+
+| Doc | Phase | Topic |
+|-----|-------|--------|
+| [PHASE12_LEAD_SCRAPING_SCHEMA.md](./PHASE12_LEAD_SCRAPING_SCHEMA.md) | 12 | Lead scraping database schema |
 
 ## Database files
 
