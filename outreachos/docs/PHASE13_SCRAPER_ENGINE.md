@@ -28,6 +28,7 @@ Add the non-UI engine for Google Maps lead scraping:
 `electron/googleMapsScraper.cjs`
 
 - Uses `puppeteer-extra`, `puppeteer-extra-plugin-stealth`, and `puppeteer`.
+- Uses the normal Puppeteer browser cache by default, with a Windows fallback for Chrome installed by `npx puppeteer browsers install chrome`.
 - Builds searches as:
 
 ```text
@@ -89,6 +90,7 @@ window.electronAPI.scraper.onProgress(callback)
 - Only one scrape is allowed at a time for now. Phase 14 UI should show this clearly.
 - `npm run lint` currently fails because of pre-existing app lint issues outside the Phase 13 changes.
 - Dev mode uses a temp-folder Electron user data directory and disables hardware acceleration to avoid Windows cache/GPU startup failures in restricted environments.
+- If Puppeteer cannot find Chrome, run `npx puppeteer browsers install chrome` from the project folder and restart `npm run dev`.
 
 ## Self-Test Checklist
 

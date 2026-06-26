@@ -5,8 +5,8 @@
 **Project:** OutreachOS AI Sales CRM Desktop App  
 **Add-on:** Lead Scraping Pipeline  
 **Last updated:** 2026-06-26  
-**Current phase:** Phase 13 complete - waiting for user review/GO  
-**Current work:** Scraper engine is implemented; waiting for user to review notes and reply `GO` to start Phase 14 UI.  
+**Current phase:** Phase 14 complete - waiting for user self-test  
+**Current work:** Scrape Leads UI is implemented; waiting for the user to test it and reply `GO` to start Phase 15.  
 **Workflow rule:** Complete one phase, stop with a self-test checklist, wait for user to reply `GO`, then continue.
 
 ---
@@ -36,7 +36,7 @@ Captured / Processing -> Mark Done -> Captured / Done
 |-------|------|--------|-------|
 | 12 | Database schema | Complete - awaiting user test | Migration created for `scrape_jobs`, `scraped_leads`, and `scraped_lead_notes`; test guide added. |
 | 13 | Scraper engine | Complete - awaiting user review | Puppeteer worker, Electron IPC bridge, Supabase job/lead writes, progress events. |
-| 14 | Scrape Leads UI | Not started | Input form, progress, job history. |
+| 14 | Scrape Leads UI | Complete - awaiting user test | Sidebar/page, search form with max leads, live progress counters, job history, realtime job refresh. |
 | 15 | Scrape Leads Processing UI | Not started | Fresh/Follow-up/Discard pipeline with required notes. |
 | 16 | Captured Leads UI | Not started | Processing/Done pipeline with note history. |
 | 17 | End-to-end integration + polish | Not started | Full lifecycle tests, realtime, visual polish. |
@@ -48,18 +48,28 @@ Captured / Processing -> Mark Done -> Captured / Done
 - `ADDON_PROGRESS.md` - durable add-on context and phase tracker.
 - `docs/PHASE12_LEAD_SCRAPING_SCHEMA.md` - Phase 12 setup and self-test guide.
 - `docs/PHASE13_SCRAPER_ENGINE.md` - Phase 13 implementation and self-test guide.
+- `docs/PHASE14_SCRAPE_LEADS_UI.md` - Phase 14 implementation and self-test guide.
 - `electron/googleMapsScraper.cjs` - Puppeteer Google Maps scraping engine.
+- `electron/googleMapsScraper.cjs` - added Chrome executable fallback for Puppeteer browser cache/system Chrome.
 - `electron/scrapeWorker.cjs` - background worker that creates jobs, inserts deduped leads, and reports progress.
 - `src/lib/scrapeLeadApi.js` - renderer helper for starting scrapes and subscribing to progress.
+- `src/lib/scrapeJobApi.js` - Supabase reads for scrape job history.
+- `src/stores/scrapeJobStore.js` - scrape form/job/progress state management.
+- `src/pages/ScrapeLeadsPage.jsx` - Scrape Leads UI page.
+- `src/pages/ScrapeLeadsPage.jsx` - added max leads control and clearer live scrape counters.
+- `src/config/navigation.js` - added Scrape Leads sidebar item.
+- `src/routes/AppRouter.jsx` - added `/scrape-leads` route.
 - `supabase/migrations/20260626_lead_scraping_pipeline.sql` - new Supabase schema migration.
 - `electron/main.cjs` - registered scraper IPC and worker lifecycle.
 - `electron/main.cjs` - hardened dev startup with workspace-local user data, GPU fallback switches, and startup logs.
 - `electron/main.cjs` - moved dev Electron user data to the system temp folder to avoid Vite watch crashes.
+- `electron/main.cjs` - removed custom Puppeteer cache override so the worker can use the Chrome installed by `npx puppeteer browsers install chrome`.
 - `electron/preload.cjs` - exposed safe scraper bridge to renderer.
 - `src/global.d.ts` - added scraper bridge typing.
 - `package.json` / `package-lock.json` - added Puppeteer scraper dependencies.
 - `package.json` - changed Electron dev wait URL from `127.0.0.1` to `localhost` to match Vite.
 - `vite.config.js` - ignored local cache folders from dev file watching.
+- `vite.config.js` - made project root explicit to avoid Vite/Rolldown absolute-path build errors on Windows.
 - `.gitignore` - ignored local npm/Puppeteer caches.
 
 ---
@@ -67,10 +77,11 @@ Captured / Processing -> Mark Done -> Captured / Done
 ## Known Issues / TODOs
 
 - User still needs to run/confirm the Phase 12 migration in Supabase SQL Editor before live scraping will save rows.
-- Phase 14 still needs to add the visible Scrape Leads page to trigger the engine from the app.
+- Phase 15 still needs to add Scrape Leads Processing; Phase 14 `View results` button is disabled until that route exists.
 - Direct Google Maps scraping can be blocked or CAPTCHA'd; Phase 13 records failures in `scrape_jobs`.
 - `npm run lint` fails due to pre-existing lint issues across the app, unrelated to the new scraper files.
 - If Electron opens then immediately closes, check for Vite watcher errors. Dev user data now lives outside the project to avoid locked-file crashes.
+- If scraping says Chrome cannot be found, run `npx puppeteer browsers install chrome` and restart `npm run dev`; the worker now uses the normal Puppeteer cache.
 
 ---
 
@@ -80,11 +91,11 @@ Captured / Processing -> Mark Done -> Captured / Done
 === OUTREACHOS CONTEXT SNAPSHOT ===
 Project: OutreachOS AI Sales CRM Desktop App
 Add-on: Lead Scraping Pipeline (Phases 12-17)
-Current phase completed: 13 locally, pending user review
+Current phase completed: 14 locally, pending user self-test
 Current phase in progress: none - waiting for GO
-Next phase: 14 after user replies GO
-Files created/modified so far: ADDON_PROGRESS.md, docs/PHASE12_LEAD_SCRAPING_SCHEMA.md, docs/PHASE13_SCRAPER_ENGINE.md, supabase/migrations/20260626_lead_scraping_pipeline.sql, electron/googleMapsScraper.cjs, electron/scrapeWorker.cjs, electron/main.cjs, electron/preload.cjs, src/global.d.ts, src/lib/scrapeLeadApi.js, package.json, package-lock.json, .gitignore, vite.config.js, docs/README.md, PROGRESS.md
-Known issues / TODOs: Phase 14 UI is needed for normal user testing; direct Google Maps scraping can be blocked; npm lint has pre-existing failures.
-Last thing done: Moved Electron dev user data outside the workspace and ignored cache folders in Vite watch.
+Next phase: 15 after user tests Phase 14 and replies GO
+Files created/modified so far: ADDON_PROGRESS.md, docs/PHASE12_LEAD_SCRAPING_SCHEMA.md, docs/PHASE13_SCRAPER_ENGINE.md, docs/PHASE14_SCRAPE_LEADS_UI.md, supabase/migrations/20260626_lead_scraping_pipeline.sql, electron/googleMapsScraper.cjs, electron/scrapeWorker.cjs, electron/main.cjs, electron/preload.cjs, src/global.d.ts, src/lib/scrapeLeadApi.js, src/lib/scrapeJobApi.js, src/stores/scrapeJobStore.js, src/pages/ScrapeLeadsPage.jsx, src/config/navigation.js, src/routes/AppRouter.jsx, package.json, package-lock.json, .gitignore, vite.config.js, docs/README.md, PROGRESS.md
+Known issues / TODOs: Phase 15 Processing UI is needed for View results; direct Google Maps scraping can be blocked; npm lint has pre-existing failures.
+Last thing done: Fixed Puppeteer Chrome discovery by using the normal browser cache and adding a Windows Chrome fallback.
 ===================================
 ```

@@ -41,19 +41,32 @@ function formatDate(value) {
 
 function ProgressLine({ progress }) {
   if (!progress) return null;
-  const parts = [];
-  if (progress.found != null) parts.push(`${progress.found} found`);
-  if (progress.processed != null) parts.push(`${progress.processed} processed`);
-  if (progress.inserted != null) parts.push(`${progress.inserted} inserted`);
-  if (progress.duplicates != null) parts.push(`${progress.duplicates} duplicates`);
+  const stats = [
+    { label: 'Found', value: progress.found },
+    { label: 'Opened', value: progress.processed },
+    { label: 'Saved', value: progress.inserted },
+    { label: 'Duplicates', value: progress.duplicates },
+  ].filter((item) => item.value != null);
 
   return (
     <div className="rounded-lg border border-accent-primary/30 bg-accent-primary/10 px-4 py-3">
       <p className="text-small font-medium text-accent-primary">
         {progress.message ?? 'Scraping...'}
       </p>
-      {parts.length > 0 && (
-        <p className="mt-1 text-small text-text-secondary">{parts.join(' · ')}</p>
+      {stats.length > 0 && (
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {stats.map((item) => (
+            <div
+              key={item.label}
+              className="rounded-md border border-border/70 bg-background-card/70 px-3 py-2"
+            >
+              <p className="text-[10px] uppercase tracking-wide text-text-muted">
+                {item.label}
+              </p>
+              <p className="text-lg font-semibold text-text-primary">{item.value}</p>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
@@ -78,6 +91,7 @@ export function ScrapeLeadsPage() {
     keyword: '',
     city: '',
     state: '',
+    maxResults: '30',
   });
   const [submitted, setSubmitted] = useState(false);
 
@@ -92,6 +106,7 @@ export function ScrapeLeadsPage() {
     city: form.city.trim(),
     state: form.state.trim(),
   };
+  const maxResults = Number(form.maxResults);
 
   const queryPreview = useMemo(() => {
     if (!trimmed.keyword && !trimmed.city && !trimmed.state) {
@@ -100,7 +115,14 @@ export function ScrapeLeadsPage() {
     return `Will search: ${trimmed.keyword || '[keyword]'} in ${trimmed.city || '[city]'}, ${trimmed.state || '[state]'}`;
   }, [trimmed.keyword, trimmed.city, trimmed.state]);
 
-  const formValid = Boolean(trimmed.keyword && trimmed.city && trimmed.state);
+  const formValid = Boolean(
+    trimmed.keyword &&
+      trimmed.city &&
+      trimmed.state &&
+      Number.isInteger(maxResults) &&
+      maxResults >= 1 &&
+      maxResults <= 100,
+  );
 
   const setField = (key, value) => {
     clearMessage();
@@ -110,7 +132,7 @@ export function ScrapeLeadsPage() {
   const handleStart = async () => {
     setSubmitted(true);
     if (!formValid || running) return;
-    await startScrape(trimmed);
+    await startScrape({ ...trimmed, maxResults });
   };
 
   return (
@@ -162,6 +184,16 @@ export function ScrapeLeadsPage() {
                   placeholder="Texas"
                   required
                 />
+                <Input
+                  label="Max leads"
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={form.maxResults}
+                  onChange={(e) => setField('maxResults', e.target.value)}
+                  required
+                  className="sm:col-span-2"
+                />
               </div>
 
               <div className="rounded-lg border border-border bg-background-elevated px-4 py-3 text-small text-text-secondary">
@@ -170,7 +202,7 @@ export function ScrapeLeadsPage() {
 
               {submitted && !formValid && (
                 <div className="rounded-lg border border-priority-high/40 bg-priority-high/10 px-4 py-3 text-small text-priority-high">
-                  Keyword, city, and state are required before starting.
+                  Keyword, city, state, and a max lead count from 1 to 100 are required.
                 </div>
               )}
 
@@ -206,7 +238,8 @@ export function ScrapeLeadsPage() {
 
               <p className="text-small text-text-muted">
                 Only one scrape can run at a time. Google may occasionally block direct scraping;
-                if that happens, the job will be marked failed instead of crashing the app.
+                if that happens, the job will be marked failed instead of crashing the app. Max
+                leads controls how many Google Maps listings the scraper will try to open.
               </p>
             </CardBody>
           </Card>

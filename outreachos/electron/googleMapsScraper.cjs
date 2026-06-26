@@ -1,5 +1,8 @@
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 
 puppeteer.use(StealthPlugin());
 
@@ -11,6 +14,24 @@ const USER_AGENTS = [
 
 const EMAIL_REGEX = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
 const DEFAULT_MAX_RESULTS = 30;
+
+function findInstalledChrome() {
+  const candidates = [
+    path.join(
+      os.homedir(),
+      '.cache',
+      'puppeteer',
+      'chrome',
+      'win64-150.0.7871.24',
+      'chrome-win64',
+      'chrome.exe',
+    ),
+    'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+    'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+  ];
+
+  return candidates.find((candidate) => fs.existsSync(candidate)) || null;
+}
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -223,8 +244,10 @@ async function scrapeGoogleMaps({ keyword, city, state, maxResults = DEFAULT_MAX
   onProgress?.({ stage: 'starting', message: `Opening Google Maps for "${query}"` });
 
   try {
+    const executablePath = findInstalledChrome();
     browser = await puppeteer.launch({
       headless: 'new',
+      ...(executablePath ? { executablePath } : {}),
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
     });
 

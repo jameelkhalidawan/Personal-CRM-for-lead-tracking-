@@ -129,12 +129,7 @@ function registerScraperIpc() {
     const workerPath = path.join(__dirname, 'scrapeWorker.cjs');
     const worker = fork(workerPath, [], {
       stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
-      env: {
-        ...process.env,
-        PUPPETEER_CACHE_DIR:
-          process.env.PUPPETEER_CACHE_DIR ||
-          path.join(app.getPath('userData'), 'puppeteer-cache'),
-      },
+      env: { ...process.env },
     });
 
     activeScrape = {
