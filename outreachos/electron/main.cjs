@@ -1,4 +1,6 @@
 const { app, BrowserWindow, ipcMain, Notification } = require('electron');
+const { fork } = require('child_process');
+const { randomUUID } = require('crypto');
 const path = require('path');
 const authStorage = require('./authStorage.cjs');
 const autoLaunch = require('./autoLaunch.cjs');
@@ -9,6 +11,16 @@ const isDev = !app.isPackaged;
 const VITE_DEV_SERVER_URL = 'http://localhost:5173';
 
 let mainWindow = null;
+let activeScrape = null;
+
+if (isDev) {
+  app.setPath('userData', path.join(app.getPath('temp'), 'OutreachOS-dev-user-data'));
+}
+
+app.disableHardwareAcceleration();
+app.commandLine.appendSwitch('disable-gpu');
+app.commandLine.appendSwitch('disable-gpu-compositing');
+app.commandLine.appendSwitch('disable-features', 'VizDisplayCompositor');
 
 function registerAuthIpc() {
   ipcMain.handle('auth-storage:get', (_event, key) => {
@@ -104,6 +116,75 @@ function registerReminderIpc() {
   });
 }
 
+function registerScraperIpc() {
+  ipcMain.handle('scraper:start', (event, payload) => {
+    if (activeScrape) {
+      return {
+        ok: false,
+        error: 'A scrape is already running. Wait for it to finish before starting another.',
+      };
+    }
+
+    const runId = randomUUID();
+    const workerPath = path.join(__dirname, 'scrapeWorker.cjs');
+    const worker = fork(workerPath, [], {
+      stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
+      env: {
+        ...process.env,
+        PUPPETEER_CACHE_DIR:
+          process.env.PUPPETEER_CACHE_DIR ||
+          path.join(app.getPath('userData'), 'puppeteer-cache'),
+      },
+    });
+
+    activeScrape = {
+      runId,
+      worker,
+      sender: event.sender,
+    };
+
+    const sendProgress = (message) => {
+      if (!event.sender.isDestroyed()) {
+        event.sender.send('scraper:progress', { runId, ...message });
+      }
+    };
+
+    worker.stdout?.on('data', (chunk) => {
+      console.log(`[OutreachOS scraper] ${chunk.toString().trim()}`);
+    });
+
+    worker.stderr?.on('data', (chunk) => {
+      console.error(`[OutreachOS scraper] ${chunk.toString().trim()}`);
+    });
+
+    worker.on('message', (message) => {
+      if (message?.type === 'ready') {
+        worker.send(payload);
+        return;
+      }
+
+      sendProgress(message);
+
+      if (message?.type === 'complete' || message?.type === 'failed') {
+        activeScrape = null;
+      }
+    });
+
+    worker.on('exit', (code) => {
+      if (activeScrape?.runId !== runId) return;
+      activeScrape = null;
+      if (code && code !== 0) {
+        sendProgress({
+          type: 'failed',
+          error: `Scraper worker exited unexpectedly (code ${code}).`,
+        });
+      }
+    });
+
+    return { ok: true, runId };
+  });
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
@@ -120,12 +201,15 @@ function createWindow() {
   });
 
   mainWindow.once('ready-to-show', () => {
+    console.log('[OutreachOS] main window ready');
     mainWindow.show();
   });
 
   if (isDev) {
-    mainWindow.loadURL(VITE_DEV_SERVER_URL);
-    mainWindow.webContents.openDevTools({ mode: 'detach' });
+    console.log(`[OutreachOS] loading ${VITE_DEV_SERVER_URL}`);
+    mainWindow.loadURL(VITE_DEV_SERVER_URL).catch((err) => {
+      console.error('[OutreachOS] failed to load dev server:', err);
+    });
   } else {
     mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
   }
@@ -139,6 +223,7 @@ app.whenReady().then(async () => {
   registerAuthIpc();
   registerConfigIpc();
   registerReminderIpc();
+  registerScraperIpc();
   registerAutoLaunchIpc();
   registerUserPrefsIpc();
   await applyStoredAutoLaunch();

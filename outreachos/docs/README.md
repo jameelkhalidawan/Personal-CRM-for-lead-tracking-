@@ -36,6 +36,7 @@ Lead Scraping Pipeline phases continue the original build from Phase 12 onward.
 | Doc | Phase | Topic |
 |-----|-------|--------|
 | [PHASE12_LEAD_SCRAPING_SCHEMA.md](./PHASE12_LEAD_SCRAPING_SCHEMA.md) | 12 | Lead scraping database schema |
+| [PHASE13_SCRAPER_ENGINE.md](./PHASE13_SCRAPER_ENGINE.md) | 13 | Google Maps scraper engine |
 
 ## Database files
 

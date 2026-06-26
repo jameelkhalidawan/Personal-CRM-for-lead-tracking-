@@ -27,6 +27,16 @@ declare global {
         }) => Promise<{ ok: boolean; reason?: string }>;
         onOpenBusiness: (callback: (businessId: string) => void) => () => void;
       };
+      scraper?: {
+        start: (payload: Record<string, unknown>) => Promise<{
+          ok: boolean;
+          runId?: string;
+          error?: string;
+        }>;
+        onProgress: (
+          callback: (payload: Record<string, unknown>) => void,
+        ) => () => void;
+      };
     };
   }
 }

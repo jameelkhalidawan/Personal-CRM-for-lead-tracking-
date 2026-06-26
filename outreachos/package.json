@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "concurrently -k \"npm run dev:vite\" \"npm run dev:electron\"",
     "dev:vite": "vite",
-    "dev:electron": "wait-on http://127.0.0.1:5173 && cross-env NODE_ENV=development electron .",
+    "dev:electron": "wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",
@@ -43,7 +43,9 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ]
     },
@@ -61,6 +63,9 @@
     "electron-auto-launch": "^5.0.7",
     "lucide-react": "^1.16.0",
     "postcss": "^8.5.15",
+    "puppeteer": "^25.2.1",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.15.1",
@@ -68,14 +73,14 @@
     "zustand": "^5.0.13"
   },
   "devDependencies": {
-    "electron": "^41.6.1",
-    "electron-builder": "^26.8.1",
     "@eslint/js": "^10.0.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
+    "electron": "^41.6.1",
+    "electron-builder": "^26.8.1",
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",

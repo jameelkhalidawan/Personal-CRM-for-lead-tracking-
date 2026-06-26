@@ -34,4 +34,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
       return () => ipcRenderer.removeListener('reminders:open-business', handler);
     },
   },
+  scraper: {
+    start: (payload) => ipcRenderer.invoke('scraper:start', payload),
+    onProgress: (callback) => {
+      const handler = (_event, payload) => callback(payload);
+      ipcRenderer.on('scraper:progress', handler);
+      return () => ipcRenderer.removeListener('scraper:progress', handler);
+    },
+  },
 });

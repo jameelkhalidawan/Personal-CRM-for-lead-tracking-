@@ -9,6 +9,9 @@ lerna-debug.log*
 
 # Dependencies & build output
 node_modules
+.npm-cache
+.puppeteer-cache
+.electron-user-data
 dist
 dist-ssr
 release
