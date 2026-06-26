@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArchiveX, Copy, ExternalLink, MapPin, MessageSquare, Phone, Star, Target } from 'lucide-react';
+import { ArchiveX, Copy, ExternalLink, MapPin, MessageSquare, Phone, Star, Target, Trophy } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Button } from '../components/ui/Button';
 import { Card, CardBody } from '../components/ui/Card';
@@ -376,6 +377,7 @@ function LeadDetailPanel({ lead, open, activeStage, onClose }) {
 }
 
 export function ScrapeLeadsProcessingPage() {
+  const navigate = useNavigate();
   const {
     loading,
     error,
@@ -406,6 +408,12 @@ export function ScrapeLeadsProcessingPage() {
       <PageHeader
         title="Scrape Leads Processing"
         description="Work scraped leads from Fresh through follow-ups, discard, or capture them into the captured pipeline."
+        actions={
+          <Button variant="secondary" onClick={() => navigate('/captured-leads')}>
+            <Trophy className="h-4 w-4" />
+            Captured Leads
+          </Button>
+        }
       />
 
       {error && (

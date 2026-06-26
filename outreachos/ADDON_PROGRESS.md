@@ -5,8 +5,8 @@
 **Project:** OutreachOS AI Sales CRM Desktop App  
 **Add-on:** Lead Scraping Pipeline  
 **Last updated:** 2026-06-26  
-**Current phase:** Phase 16 complete - waiting for user self-test  
-**Current work:** Captured Leads UI is implemented; waiting for the user to test it and reply `GO` to start Phase 17.  
+**Current phase:** Phase 17 complete  
+**Current work:** Lead Scraping Pipeline add-on is complete locally; waiting for final user end-to-end verification.  
 **Workflow rule:** Complete one phase, stop with a self-test checklist, wait for user to reply `GO`, then continue.
 
 ---
@@ -39,7 +39,7 @@ Captured / Processing -> Mark Done -> Captured / Done
 | 14 | Scrape Leads UI | Complete - awaiting user test | Sidebar/page, search form with max leads, live progress counters, job history, realtime job refresh. |
 | 15 | Scrape Leads Processing UI | Complete - awaiting user test | Fresh/Follow-up/Discard pipeline with required notes, call script reader, note history, capture action, realtime refresh. |
 | 16 | Captured Leads UI | Complete - awaiting user test | Processing/Done tabs, Mark Done with required note, full note history, plain notes in Done. |
-| 17 | End-to-end integration + polish | Not started | Full lifecycle tests, realtime, visual polish. |
+| 17 | End-to-end integration + polish | Complete - awaiting final user verification | Sidebar grouping, workflow cross-links, final docs/checklist, build verification. |
 
 ---
 
@@ -51,6 +51,7 @@ Captured / Processing -> Mark Done -> Captured / Done
 - `docs/PHASE14_SCRAPE_LEADS_UI.md` - Phase 14 implementation and self-test guide.
 - `docs/PHASE15_SCRAPE_LEADS_PROCESSING.md` - Phase 15 implementation and self-test guide.
 - `docs/PHASE16_CAPTURED_LEADS.md` - Phase 16 implementation and self-test guide.
+- `docs/PHASE17_LEAD_SCRAPING_INTEGRATION.md` - Phase 17 final integration and test guide.
 - `electron/googleMapsScraper.cjs` - Puppeteer Google Maps scraping engine.
 - `electron/googleMapsScraper.cjs` - added Chrome executable fallback for Puppeteer browser cache/system Chrome.
 - `electron/scrapeWorker.cjs` - background worker that creates jobs, inserts deduped leads, and reports progress.
@@ -71,8 +72,10 @@ Captured / Processing -> Mark Done -> Captured / Done
 - `src/config/navigation.js` - added Scrape Leads sidebar item.
 - `src/config/navigation.js` - added Scrape Processing sidebar item.
 - `src/config/navigation.js` - added Captured Leads sidebar item.
+- `src/config/navigation.js` - added grouped sidebar sections for Core CRM, Lead Scraping, and Templates.
 - `src/routes/AppRouter.jsx` - added `/scrape-leads`, `/scrape-leads-processing`, and `/captured-leads` routes.
 - `src/routes/AppRouter.jsx` - mounted Supabase keep-alive hook for logged-in app sessions.
+- `src/components/layout/Sidebar.jsx` - renders grouped sidebar sections.
 - `supabase/migrations/20260626_lead_scraping_pipeline.sql` - new Supabase schema migration.
 - `electron/main.cjs` - registered scraper IPC and worker lifecycle.
 - `electron/main.cjs` - hardened dev startup with workspace-local user data, GPU fallback switches, and startup logs.
@@ -91,7 +94,7 @@ Captured / Processing -> Mark Done -> Captured / Done
 ## Known Issues / TODOs
 
 - User still needs to run/confirm the Phase 12 migration in Supabase SQL Editor before live scraping will save rows.
-- Phase 17 still needs end-to-end integration/polish across all scraping pages.
+- Final user end-to-end verification still needed.
 - Idle recovery was added before Phase 17; user should verify the app still fetches after 10 minutes idle.
 - Direct Google Maps scraping can be blocked or CAPTCHA'd; Phase 13 records failures in `scrape_jobs`.
 - `npm run lint` fails due to pre-existing lint issues across the app, unrelated to the new scraper files.
@@ -106,11 +109,11 @@ Captured / Processing -> Mark Done -> Captured / Done
 === OUTREACHOS CONTEXT SNAPSHOT ===
 Project: OutreachOS AI Sales CRM Desktop App
 Add-on: Lead Scraping Pipeline (Phases 12-17)
-Current phase completed: 16 locally, pending user self-test
+Current phase completed: 17 locally, pending final user verification
 Current phase in progress: none - waiting for GO
-Next phase: 17 after user tests Phase 16 and replies GO
-Files created/modified so far: ADDON_PROGRESS.md, docs/PHASE12_LEAD_SCRAPING_SCHEMA.md, docs/PHASE13_SCRAPER_ENGINE.md, docs/PHASE14_SCRAPE_LEADS_UI.md, docs/PHASE15_SCRAPE_LEADS_PROCESSING.md, docs/PHASE16_CAPTURED_LEADS.md, supabase/migrations/20260626_lead_scraping_pipeline.sql, electron/googleMapsScraper.cjs, electron/scrapeWorker.cjs, electron/main.cjs, electron/preload.cjs, src/global.d.ts, src/hooks/useSupabaseKeepAlive.js, src/lib/scrapeLeadApi.js, src/lib/scrapeJobApi.js, src/lib/scrapedLeadApi.js, src/stores/scrapeJobStore.js, src/stores/scrapedLeadStore.js, src/stores/capturedLeadStore.js, src/pages/ScrapeLeadsPage.jsx, src/pages/ScrapeLeadsProcessingPage.jsx, src/pages/CapturedLeadsPage.jsx, src/config/navigation.js, src/routes/AppRouter.jsx, package.json, package-lock.json, .gitignore, vite.config.js, docs/README.md, PROGRESS.md
-Known issues / TODOs: Phase 17 integration/polish remains; direct Google Maps scraping can be blocked; npm lint has pre-existing failures.
-Last thing done: Made Scrape Processing script display literal/full-section templates and added Supabase idle recovery.
+Next phase: none - add-on phases 12-17 complete
+Files created/modified so far: ADDON_PROGRESS.md, docs/PHASE12_LEAD_SCRAPING_SCHEMA.md, docs/PHASE13_SCRAPER_ENGINE.md, docs/PHASE14_SCRAPE_LEADS_UI.md, docs/PHASE15_SCRAPE_LEADS_PROCESSING.md, docs/PHASE16_CAPTURED_LEADS.md, docs/PHASE17_LEAD_SCRAPING_INTEGRATION.md, supabase/migrations/20260626_lead_scraping_pipeline.sql, electron/googleMapsScraper.cjs, electron/scrapeWorker.cjs, electron/main.cjs, electron/preload.cjs, src/global.d.ts, src/hooks/useSupabaseKeepAlive.js, src/lib/scrapeLeadApi.js, src/lib/scrapeJobApi.js, src/lib/scrapedLeadApi.js, src/stores/scrapeJobStore.js, src/stores/scrapedLeadStore.js, src/stores/capturedLeadStore.js, src/pages/ScrapeLeadsPage.jsx, src/pages/ScrapeLeadsProcessingPage.jsx, src/pages/CapturedLeadsPage.jsx, src/config/navigation.js, src/components/layout/Sidebar.jsx, src/routes/AppRouter.jsx, package.json, package-lock.json, .gitignore, vite.config.js, docs/README.md, PROGRESS.md
+Known issues / TODOs: Final user E2E verification remains; direct Google Maps scraping can be blocked; npm lint has pre-existing failures.
+Last thing done: Completed Phase 17 final integration with grouped sidebar navigation and workflow cross-links.
 ===================================
 ```

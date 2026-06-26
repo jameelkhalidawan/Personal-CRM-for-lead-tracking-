@@ -34,7 +34,7 @@
 - Dashboard metrics + outreach channel on activities
 - Call script templates + polish pass
 - Migrations: `20260519`–`20260522`
-- Lead Scraping Pipeline add-on started as Phases 12-17. Phase 16 is complete locally and awaiting user self-test. See [ADDON_PROGRESS.md](./ADDON_PROGRESS.md).
+- Lead Scraping Pipeline add-on Phases 12-17 are complete locally and awaiting final user end-to-end verification. See [ADDON_PROGRESS.md](./ADDON_PROGRESS.md).
 
 ---
 

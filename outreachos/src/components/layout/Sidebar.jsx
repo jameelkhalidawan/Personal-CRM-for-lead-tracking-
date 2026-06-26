@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { cn } from '../../lib/cn';
-import { NAV_ITEMS } from '../../config/navigation';
+import { NAV_SECTIONS } from '../../config/navigation';
 import { useAuthStore } from '../../stores/authStore';
 
 function getInitials(user) {
@@ -38,24 +38,31 @@ export function Sidebar() {
         </div>
       </div>
 
-      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-        {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-body transition-colors',
-                isActive
-                  ? 'bg-accent-primary/15 text-text-primary border border-accent-primary/30'
-                  : 'text-text-secondary hover:bg-background-elevated hover:text-text-primary border border-transparent',
-              )
-            }
-          >
-            <Icon className="h-5 w-5 shrink-0" />
-            {label}
-          </NavLink>
+      <nav className="flex-1 space-y-4 overflow-y-auto p-3">
+        {NAV_SECTIONS.map((section) => (
+          <div key={section.label} className="space-y-1">
+            <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-text-muted">
+              {section.label}
+            </p>
+            {section.items.map(({ to, label, icon: Icon, end }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                className={({ isActive }) =>
+                  cn(
+                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-body transition-colors',
+                    isActive
+                      ? 'bg-accent-primary/15 text-text-primary border border-accent-primary/30'
+                      : 'text-text-secondary hover:bg-background-elevated hover:text-text-primary border border-transparent',
+                  )
+                }
+              >
+                <Icon className="h-5 w-5 shrink-0" />
+                {label}
+              </NavLink>
+            ))}
+          </div>
         ))}
       </nav>
 

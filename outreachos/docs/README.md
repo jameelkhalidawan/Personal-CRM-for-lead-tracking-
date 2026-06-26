@@ -40,6 +40,7 @@ Lead Scraping Pipeline phases continue the original build from Phase 12 onward.
 | [PHASE14_SCRAPE_LEADS_UI.md](./PHASE14_SCRAPE_LEADS_UI.md) | 14 | Scrape Leads UI and job history |
 | [PHASE15_SCRAPE_LEADS_PROCESSING.md](./PHASE15_SCRAPE_LEADS_PROCESSING.md) | 15 | Scraped lead processing pipeline |
 | [PHASE16_CAPTURED_LEADS.md](./PHASE16_CAPTURED_LEADS.md) | 16 | Captured Leads page |
+| [PHASE17_LEAD_SCRAPING_INTEGRATION.md](./PHASE17_LEAD_SCRAPING_INTEGRATION.md) | 17 | Final integration and polish |
 
 ## Database files
 

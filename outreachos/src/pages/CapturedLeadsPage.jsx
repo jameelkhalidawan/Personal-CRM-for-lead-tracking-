@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { CheckCircle2, ExternalLink, MapPin, MessageSquare, Phone, Star, Trophy } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { CheckCircle2, ExternalLink, MapPin, MessageSquare, Phone, Star, Trophy, Workflow } from 'lucide-react';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Button } from '../components/ui/Button';
 import { Card, CardBody } from '../components/ui/Card';
@@ -226,6 +227,7 @@ function CapturedLeadPanel({ lead, open, activeStatus, onClose }) {
 }
 
 export function CapturedLeadsPage() {
+  const navigate = useNavigate();
   const {
     loading,
     error,
@@ -256,6 +258,12 @@ export function CapturedLeadsPage() {
       <PageHeader
         title="Captured Leads"
         description="Track scraped leads that converted out of the call funnel, then mark them done when the handoff is complete."
+        actions={
+          <Button variant="secondary" onClick={() => navigate('/scrape-leads-processing')}>
+            <Workflow className="h-4 w-4" />
+            Processing
+          </Button>
+        }
       />
 
       {error && (
