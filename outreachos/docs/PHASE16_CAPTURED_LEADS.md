@@ -71,6 +71,17 @@ Actions:
 - [x] Production build succeeds with `npm run build`.
 - [x] Scraper modules still load.
 
+## Idle Recovery
+
+Added during Phase 16 before final polish:
+
+- `src/hooks/useSupabaseKeepAlive.js` refreshes/checks Supabase session every 4 minutes.
+- It also runs when the app regains focus, comes back online, or becomes visible.
+- It dispatches an `outreachos:resume` event.
+- Scrape Leads, Scrape Processing, and Captured Leads stores reload their active data on that event.
+
+This is intended to prevent the app from going stale after sitting idle for 5-10 minutes.
+
 ## Self-Test Checklist
 
 - [ ] Sidebar shows `Captured Leads`.
@@ -84,3 +95,4 @@ Actions:
 - [ ] Done tab shows the lead with full note history.
 - [ ] Add a plain note in Done; note appears and status stays Done.
 - [ ] Two windows/users: marking done or adding notes in one window updates the other window.
+- [ ] Leave the app idle for 10 minutes, return to it, and confirm Scrape/Captured pages still fetch and update without rerunning the app.

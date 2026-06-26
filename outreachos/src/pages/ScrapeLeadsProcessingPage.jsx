@@ -1,15 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArchiveX, ExternalLink, MapPin, MessageSquare, Phone, Star, Target } from 'lucide-react';
+import { ArchiveX, Copy, ExternalLink, MapPin, MessageSquare, Phone, Star, Target } from 'lucide-react';
 import { PageHeader } from '../components/layout/PageHeader';
 import { Button } from '../components/ui/Button';
 import { Card, CardBody } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
 import { SearchInput } from '../components/ui/SearchInput';
 import { SlidePanel } from '../components/ui/SlidePanel';
-import { Textarea } from '../components/ui/Input';
+import { Input, Select, Textarea } from '../components/ui/Input';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { formatDateTime } from '../lib/format';
 import { cn } from '../lib/cn';
+import { buildTemplateContext, renderTemplate } from '../lib/templateRender';
+import { useAuthStore } from '../stores/authStore';
+import { useCallTemplateStore } from '../stores/callTemplateStore';
 import { useScrapedLeadStore } from '../stores/scrapedLeadStore';
 
 const STAGES = [
@@ -115,6 +118,117 @@ function NoteTimeline({ notes }) {
   );
 }
 
+function leadToTemplateBusiness(lead) {
+  return {
+    business_name: lead.business_name ?? '',
+    niche: lead.area_served || lead.search_keyword || '',
+    business_email: lead.email ?? '',
+    website_url: lead.website ?? '',
+    phone_number: lead.phone_number ?? '',
+    city: lead.search_city ?? '',
+    lead_source: lead.search_keyword ? `Google Maps: ${lead.search_keyword}` : 'Google Maps',
+  };
+}
+
+function CallScriptReader({ lead, contactName }) {
+  const user = useAuthStore((s) => s.user);
+  const { templates, loadAll, subscribeRealtime, unsubscribeRealtime } = useCallTemplateStore();
+  const [templateId, setTemplateId] = useState('');
+
+  useEffect(() => {
+    loadAll();
+    subscribeRealtime();
+    return () => unsubscribeRealtime();
+  }, [loadAll, subscribeRealtime, unsubscribeRealtime]);
+
+  const selectedTemplate = templates.find((template) => template.id === templateId);
+  const scripts = selectedTemplate?.scripts ?? [];
+
+  const context = buildTemplateContext({
+    business: leadToTemplateBusiness(lead),
+    decisionMaker: {
+      name: contactName,
+      email: lead.email ?? '',
+      phone_number: lead.phone_number ?? '',
+      role: '',
+    },
+    user,
+  });
+
+  const renderedSections = scripts.map((script) => ({
+    ...script,
+    renderedBody: renderTemplate(script.body, context),
+  }));
+  const renderedFullScript = renderedSections
+    .map((script) => `${script.label}\n\n${script.renderedBody}`)
+    .join('\n\n');
+
+  const copyScript = async () => {
+    if (!renderedFullScript) return;
+    await navigator.clipboard?.writeText(renderedFullScript);
+  };
+
+  return (
+    <section className="rounded-xl border border-accent-primary/30 bg-accent-primary/10 p-4 space-y-4">
+      <div className="flex items-center gap-2">
+        <Phone className="h-4 w-4 text-accent-primary" />
+        <div>
+          <h3 className="text-small font-medium text-text-primary">Call script</h3>
+          <p className="text-small text-text-muted">
+            Shows your saved script exactly as written, with placeholders filled.
+          </p>
+        </div>
+      </div>
+
+      <Select
+        label="Choose script template"
+        value={templateId}
+        onChange={(e) => setTemplateId(e.target.value)}
+      >
+        <option value="">- Select a template -</option>
+        {templates.map((template) => (
+          <option key={template.id} value={template.id}>
+            {template.name}
+            {template.category ? ` (${template.category})` : ''}
+          </option>
+        ))}
+      </Select>
+
+      {renderedSections.length > 0 ? (
+        <div>
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <p className="text-label uppercase text-text-muted">Full script ready to read</p>
+            <Button type="button" variant="ghost" size="sm" onClick={copyScript}>
+              <Copy className="h-3.5 w-3.5" />
+              Copy
+            </Button>
+          </div>
+          <div className="max-h-80 space-y-3 overflow-y-auto rounded-lg border border-border bg-background-card p-3">
+            {renderedSections.map((script) => (
+              <section key={script.id} className="space-y-2">
+                <h4 className="text-label uppercase text-accent-primary">
+                  {script.label}
+                </h4>
+                <pre className="whitespace-pre-wrap font-sans text-small text-text-primary">
+                  {script.renderedBody || '-'}
+                </pre>
+              </section>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-lg border border-border bg-background-card px-3 py-3 text-small text-text-muted">
+          Select a call template to show the full saved script for this lead.
+        </div>
+      )}
+
+      <div className="rounded-lg border border-border/70 bg-background-card/60 px-3 py-2 text-small text-text-muted">
+        Available placeholders include {'{{contact_name}}'}, {'{{business_name}}'}, {'{{niche}}'}, and {'{{your_name}}'}.
+      </div>
+    </section>
+  );
+}
+
 function LeadDetailPanel({ lead, open, activeStage, onClose }) {
   const {
     notesByLeadId,
@@ -126,11 +240,13 @@ function LeadDetailPanel({ lead, open, activeStage, onClose }) {
     addPlainNote,
   } = useScrapedLeadStore();
   const [note, setNote] = useState('');
+  const [contactName, setContactName] = useState('');
 
   useEffect(() => {
     if (open && lead?.id) {
       loadNotes(lead.id);
       setNote('');
+      setContactName('');
     }
   }, [open, lead?.id, loadNotes]);
 
@@ -187,6 +303,16 @@ function LeadDetailPanel({ lead, open, activeStage, onClose }) {
               <ExternalLink className="h-3.5 w-3.5" />
             </a>
           )}
+        </section>
+
+        <section className="space-y-3">
+          <Input
+            label="Contact name for script"
+            value={contactName}
+            onChange={(e) => setContactName(e.target.value)}
+            placeholder="Owner, manager, or decision maker name"
+          />
+          <CallScriptReader lead={lead} contactName={contactName} />
         </section>
 
         <section>

@@ -2,9 +2,11 @@ import { create } from 'zustand';
 import { getSupabase } from '../lib/supabase';
 import { fetchScrapeJobs } from '../lib/scrapeJobApi';
 import { onScrapeProgress, startScrapeLeads } from '../lib/scrapeLeadApi';
+import { RESUME_EVENT } from '../hooks/useSupabaseKeepAlive';
 
 let jobsRealtimeChannel = null;
 let progressUnsubscribe = null;
+let resumeUnsubscribe = null;
 
 export const useScrapeJobStore = create((set, get) => ({
   jobs: [],
@@ -43,6 +45,11 @@ export const useScrapeJobStore = create((set, get) => ({
     } catch {
       // Job history still works with manual reload after scrape completion.
     }
+    if (!resumeUnsubscribe) {
+      const onResume = () => get().loadJobs();
+      window.addEventListener(RESUME_EVENT, onResume);
+      resumeUnsubscribe = () => window.removeEventListener(RESUME_EVENT, onResume);
+    }
   },
 
   unsubscribeRealtime: () => {
@@ -53,6 +60,10 @@ export const useScrapeJobStore = create((set, get) => ({
     if (progressUnsubscribe) {
       progressUnsubscribe();
       progressUnsubscribe = null;
+    }
+    if (resumeUnsubscribe) {
+      resumeUnsubscribe();
+      resumeUnsubscribe = null;
     }
   },
 

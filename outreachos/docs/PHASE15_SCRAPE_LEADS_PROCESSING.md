@@ -43,6 +43,8 @@ The detail panel shows:
 - Full lead detail
 - Website link
 - Rating/review count
+- Call script reader using existing Call Scripts templates
+- Contact name field for filling `{{contact_name}}`
 - Full note history
 - Note textarea
 
@@ -63,6 +65,24 @@ Actions:
   - No stage actions
   - Allows plain notes with `action = note`
   - Keeps panel open after note save so the new note is visible
+
+### Call Script Reader
+
+Scraped leads do not always include a decision-maker name. The detail panel includes a local `Contact name for script` field so the user can type the person they are calling. The script reader uses existing call templates and fills placeholders such as:
+
+- `{{contact_name}}`
+- `{{business_name}}`
+- `{{niche}}`
+- `{{your_name}}`
+
+For scraped leads:
+
+- `business_name` comes from the scraped business.
+- `niche` comes from area served/category, falling back to search keyword.
+- `phone_number`, `email`, `website`, and `city` come from scraped lead fields.
+- `your_name` comes from the logged-in user's profile/email.
+- The script is not rewritten or improved. It displays the saved template exactly as written, only replacing placeholders with relevant values.
+- If a call template has multiple script sections, all sections are shown at once with their section names. The user does not manually select individual sections.
 
 ### Store/API
 
@@ -91,6 +111,7 @@ Actions:
 
 - [x] Production build succeeds with `npm run build`.
 - [x] Scraper modules still load.
+- [x] Existing Call Scripts templates can be rendered inside Scrape Processing lead detail.
 
 ## Self-Test Checklist
 
@@ -99,6 +120,10 @@ Actions:
 - [ ] Stage count badges show the correct number of leads.
 - [ ] Search filters by business name, city, keyword, email, phone, or address.
 - [ ] Open a Fresh lead; full details and note history are visible.
+- [ ] Enter a Contact name and select a call template; rendered script fills contact/business/niche/your-name placeholders.
+- [ ] Templates with multiple sections show every section at once with section names.
+- [ ] Script wording matches the saved template exactly except placeholder values.
+- [ ] Copy button copies the full rendered script.
 - [ ] `Move to Follow-up 1` is disabled until a note is entered.
 - [ ] Add a note and click `Move to Follow-up 1`; lead disappears from Fresh and appears in Follow-up 1.
 - [ ] Note is saved with action tag `Moved stage`.

@@ -8,8 +8,10 @@ import {
   transitionScrapedLead,
 } from '../lib/scrapedLeadApi';
 import { useAuthStore } from './authStore';
+import { RESUME_EVENT } from '../hooks/useSupabaseKeepAlive';
 
 let capturedRealtimeChannel = null;
+let resumeUnsubscribe = null;
 
 function applySearch(leads, search) {
   const q = String(search ?? '').trim().toLowerCase();
@@ -105,12 +107,21 @@ export const useCapturedLeadStore = create((set, get) => ({
     } catch {
       // Page still works with manual reloads after actions.
     }
+    if (!resumeUnsubscribe) {
+      const onResume = () => get().loadLeads();
+      window.addEventListener(RESUME_EVENT, onResume);
+      resumeUnsubscribe = () => window.removeEventListener(RESUME_EVENT, onResume);
+    }
   },
 
   unsubscribeRealtime: () => {
     if (capturedRealtimeChannel) {
       getSupabase().removeChannel(capturedRealtimeChannel);
       capturedRealtimeChannel = null;
+    }
+    if (resumeUnsubscribe) {
+      resumeUnsubscribe();
+      resumeUnsubscribe = null;
     }
   },
 

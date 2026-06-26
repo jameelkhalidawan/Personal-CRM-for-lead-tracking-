@@ -2,6 +2,7 @@ import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { ReminderNavigationListener } from '../components/ReminderNavigationListener';
 import { useReminderScheduler } from '../hooks/useReminderScheduler';
+import { useSupabaseKeepAlive } from '../hooks/useSupabaseKeepAlive';
 import { AppLayout } from '../layouts/AppLayout';
 import { DashboardPage } from '../pages/DashboardPage';
 import { BusinessesPage } from '../pages/BusinessesPage';
@@ -18,6 +19,7 @@ import { CapturedLeadsPage } from '../pages/CapturedLeadsPage';
 
 export function AppRouter() {
   useReminderScheduler();
+  useSupabaseKeepAlive();
 
   return (
     <HashRouter>

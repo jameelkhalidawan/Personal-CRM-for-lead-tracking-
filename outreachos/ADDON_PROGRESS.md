@@ -37,7 +37,7 @@ Captured / Processing -> Mark Done -> Captured / Done
 | 12 | Database schema | Complete - awaiting user test | Migration created for `scrape_jobs`, `scraped_leads`, and `scraped_lead_notes`; test guide added. |
 | 13 | Scraper engine | Complete - awaiting user review | Puppeteer worker, Electron IPC bridge, Supabase job/lead writes, progress events. |
 | 14 | Scrape Leads UI | Complete - awaiting user test | Sidebar/page, search form with max leads, live progress counters, job history, realtime job refresh. |
-| 15 | Scrape Leads Processing UI | Complete - awaiting user test | Fresh/Follow-up/Discard pipeline with required notes, note history, capture action, realtime refresh. |
+| 15 | Scrape Leads Processing UI | Complete - awaiting user test | Fresh/Follow-up/Discard pipeline with required notes, call script reader, note history, capture action, realtime refresh. |
 | 16 | Captured Leads UI | Complete - awaiting user test | Processing/Done tabs, Mark Done with required note, full note history, plain notes in Done. |
 | 17 | End-to-end integration + polish | Not started | Full lifecycle tests, realtime, visual polish. |
 
@@ -61,14 +61,18 @@ Captured / Processing -> Mark Done -> Captured / Done
 - `src/stores/scrapeJobStore.js` - scrape form/job/progress state management.
 - `src/stores/scrapedLeadStore.js` - processing pipeline state, notes, actions, and realtime subscriptions.
 - `src/stores/capturedLeadStore.js` - captured leads state, Mark Done, notes, and realtime subscriptions.
+- `src/hooks/useSupabaseKeepAlive.js` - app-level Supabase session keep-alive and resume event dispatch.
 - `src/pages/ScrapeLeadsPage.jsx` - Scrape Leads UI page.
 - `src/pages/ScrapeLeadsPage.jsx` - added max leads control and clearer live scrape counters.
 - `src/pages/ScrapeLeadsProcessingPage.jsx` - Fresh/Follow-up/Discard processing UI.
+- `src/pages/ScrapeLeadsProcessingPage.jsx` - added call script reader using existing Call Scripts templates and placeholders.
+- `src/pages/ScrapeLeadsProcessingPage.jsx` - script reader now shows all sections at once and only replaces placeholders without rewriting script text.
 - `src/pages/CapturedLeadsPage.jsx` - Captured Leads Processing/Done UI.
 - `src/config/navigation.js` - added Scrape Leads sidebar item.
 - `src/config/navigation.js` - added Scrape Processing sidebar item.
 - `src/config/navigation.js` - added Captured Leads sidebar item.
 - `src/routes/AppRouter.jsx` - added `/scrape-leads`, `/scrape-leads-processing`, and `/captured-leads` routes.
+- `src/routes/AppRouter.jsx` - mounted Supabase keep-alive hook for logged-in app sessions.
 - `supabase/migrations/20260626_lead_scraping_pipeline.sql` - new Supabase schema migration.
 - `electron/main.cjs` - registered scraper IPC and worker lifecycle.
 - `electron/main.cjs` - hardened dev startup with workspace-local user data, GPU fallback switches, and startup logs.
@@ -88,6 +92,7 @@ Captured / Processing -> Mark Done -> Captured / Done
 
 - User still needs to run/confirm the Phase 12 migration in Supabase SQL Editor before live scraping will save rows.
 - Phase 17 still needs end-to-end integration/polish across all scraping pages.
+- Idle recovery was added before Phase 17; user should verify the app still fetches after 10 minutes idle.
 - Direct Google Maps scraping can be blocked or CAPTCHA'd; Phase 13 records failures in `scrape_jobs`.
 - `npm run lint` fails due to pre-existing lint issues across the app, unrelated to the new scraper files.
 - If Electron opens then immediately closes, check for Vite watcher errors. Dev user data now lives outside the project to avoid locked-file crashes.
@@ -104,8 +109,8 @@ Add-on: Lead Scraping Pipeline (Phases 12-17)
 Current phase completed: 16 locally, pending user self-test
 Current phase in progress: none - waiting for GO
 Next phase: 17 after user tests Phase 16 and replies GO
-Files created/modified so far: ADDON_PROGRESS.md, docs/PHASE12_LEAD_SCRAPING_SCHEMA.md, docs/PHASE13_SCRAPER_ENGINE.md, docs/PHASE14_SCRAPE_LEADS_UI.md, docs/PHASE15_SCRAPE_LEADS_PROCESSING.md, docs/PHASE16_CAPTURED_LEADS.md, supabase/migrations/20260626_lead_scraping_pipeline.sql, electron/googleMapsScraper.cjs, electron/scrapeWorker.cjs, electron/main.cjs, electron/preload.cjs, src/global.d.ts, src/lib/scrapeLeadApi.js, src/lib/scrapeJobApi.js, src/lib/scrapedLeadApi.js, src/stores/scrapeJobStore.js, src/stores/scrapedLeadStore.js, src/stores/capturedLeadStore.js, src/pages/ScrapeLeadsPage.jsx, src/pages/ScrapeLeadsProcessingPage.jsx, src/pages/CapturedLeadsPage.jsx, src/config/navigation.js, src/routes/AppRouter.jsx, package.json, package-lock.json, .gitignore, vite.config.js, docs/README.md, PROGRESS.md
+Files created/modified so far: ADDON_PROGRESS.md, docs/PHASE12_LEAD_SCRAPING_SCHEMA.md, docs/PHASE13_SCRAPER_ENGINE.md, docs/PHASE14_SCRAPE_LEADS_UI.md, docs/PHASE15_SCRAPE_LEADS_PROCESSING.md, docs/PHASE16_CAPTURED_LEADS.md, supabase/migrations/20260626_lead_scraping_pipeline.sql, electron/googleMapsScraper.cjs, electron/scrapeWorker.cjs, electron/main.cjs, electron/preload.cjs, src/global.d.ts, src/hooks/useSupabaseKeepAlive.js, src/lib/scrapeLeadApi.js, src/lib/scrapeJobApi.js, src/lib/scrapedLeadApi.js, src/stores/scrapeJobStore.js, src/stores/scrapedLeadStore.js, src/stores/capturedLeadStore.js, src/pages/ScrapeLeadsPage.jsx, src/pages/ScrapeLeadsProcessingPage.jsx, src/pages/CapturedLeadsPage.jsx, src/config/navigation.js, src/routes/AppRouter.jsx, package.json, package-lock.json, .gitignore, vite.config.js, docs/README.md, PROGRESS.md
 Known issues / TODOs: Phase 17 integration/polish remains; direct Google Maps scraping can be blocked; npm lint has pre-existing failures.
-Last thing done: Implemented Captured Leads with Processing/Done tabs, Mark Done, and persistent notes.
+Last thing done: Made Scrape Processing script display literal/full-section templates and added Supabase idle recovery.
 ===================================
 ```
